@@ -65,9 +65,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="game.cpp" />
-    <ClCompile Include="snake.cpp" />
+    <ClCompile Include="game.c" />
+    <ClCompile Include="LinkList.c" />
+    <ClCompile Include="snake.c" />
     <ClCompile Include="snake.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LinkList.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
