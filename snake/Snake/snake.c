@@ -43,29 +43,18 @@ void SetDirction(dirction dir)
 
 bool Gorwup()
 {
-	POSITION* pNewHead = (POSITION*)malloc(sizeof(POSITION));
-	POSITION* pHead;
+	POSITION* pNewTail = (POSITION*)malloc(sizeof(POSITION));
+	POSITION* pTail;		// 倒数第一
+	POSITION* pLastButOne;	// 倒数第二
+	int size = ListSize(snake);
 
-	pHead = (POSITION*)ListGetAt(snake, 0);
-	pNewHead->x = pHead->x;
-	pNewHead->y = pHead->y;
+	pTail = (POSITION*)ListGetAt(snake, size - 1);
+	pLastButOne = (POSITION*)ListGetAt(snake, size - 2);
+	// 沿着倒数第二->倒数第一的方向，添加一个新的节点。
+	pNewTail->x = pTail->x + (pTail->x - pLastButOne->x);
+	pNewTail->y = pTail->y + (pTail->y - pLastButOne->y);
 
-	switch (snake_dir)
-	{
-	case SNAKE_UP:
-		pNewHead->y = pHead->y - 1;
-		break;
-	case SNAKE_DOWN:
-		pNewHead->y = pHead->y + 1;
-		break;
-	case SNAKE_LEFT:
-		pNewHead->x = pHead->y - 1;
-		break;
-	case SNAKE_RIGHT:
-		pNewHead->x = pHead->y + 1;
-		break;
-	}
-	ListPushFront(snake, pNewHead);
+	ListPushBack(snake, pNewTail);
 
 	return true;
 }
@@ -75,30 +64,27 @@ bool Gorwup()
 
 bool CreateFood()
 {
-	bool on_snake = false;
 	POSITION* posbody;
 	int i;
 	int size = ListSize(snake);
 
-	while (true)
+new_food:
+
+	food.x = rand() % CELLS_X;
+	food.y = rand() % CELLS_Y;
+
+	// 判断是否和蛇重叠了。
+
+	for (i = 0; i < size; i++)
 	{
-		food.x = rand() % CELLS_X;
-		food.y = rand() % CELLS_Y;
-
-		// 判断是否和蛇重叠了。
-
-		for (i = 0; i<size; i++)
+		posbody = (POSITION*)ListGetAt(snake, i);
+		if (IsCoincide(posbody, &food))
 		{
-			posbody = (POSITION*)ListGetAt(snake, i);
-			if (IsCoincide(posbody, &food))
-			{
-				on_snake = true;
-				break;
-			}
+			goto new_food;
 		}
-		if (!on_snake)
-			return true;
 	}
+	return true;
+
 }
 
 
@@ -114,12 +100,48 @@ bool CreateSnake()
 	{
 		p = (POSITION*)malloc(sizeof(POSITION));
 		// 蛇的初始位置 10， 10；
-		p->x = 10+i;
+		p->x = 10 + i;
 		p->y = 10;
 		ListPushBack(snake, p);
 	}
 	return true;
 }
+
+
+// 0 蛇没有死 else 蛇死了。
+int IsSnakeDead()
+{
+	POSITION* posBody;
+	POSITION* posHead;
+
+	int i;
+	int size = ListSize(snake);
+
+
+	// 判断是否死亡
+	/// 判断是否碰到墙
+	posHead = (POSITION*)ListGetAt(snake, 0);
+
+	if (posHead->x < 0 || posHead->x > CELLS_X ||
+		posHead->y < 0 || posHead->y > CELLS_Y)
+	{
+		return -1;
+	}
+	/// 判断是否碰到自己
+	//// 从第二个节点开始，逐一和头节点比较。
+	size = ListSize(snake);
+
+	for (i = 1; i < size; i++)
+	{
+		posBody = (POSITION*)ListGetAt(snake, i);
+		if (IsCoincide(posHead, posBody))
+		{
+			return -1;
+		}
+	}
+	return 0;
+}
+
 
 // 用来将蛇移动一步，
 // 如果移动之后，蛇没有死则返回0，如果蛇死了（撞到墙或者撞到自己）则返回 -1；
@@ -127,10 +149,10 @@ int SnakeMove()
 {
 	// 完成移动的动作
 	POSITION* posHead;
-	POSITION* posBody;
+
 	POSITION* posTail;
-	int i;
-	int size = ListSize(snake);
+	//int i;
+	//int size = ListSize(snake);
 
 	// 把蛇尾按照蛇的当前方向放置到蛇头。
 	posHead = (POSITION*)ListGetAt(snake, 0);
@@ -158,7 +180,6 @@ int SnakeMove()
 	}
 	ListPushFront(snake, posTail);
 
-
 	// 判断是否吃到了食物
 	if (IsCoincide(posHead, &food))
 	{
@@ -167,27 +188,5 @@ int SnakeMove()
 		return 0;
 	}
 
-	// 判断是否死亡
-	// 判断是否碰到墙
-	posHead = (POSITION*)ListGetAt(snake, 0);
-
-	if (posHead->x < 0 || posHead->x > CELLS_X ||
-		posHead->y < 0 || posHead->y > CELLS_Y)
-	{
-		return -1;
-	}
-	// 判断是否碰到自己
-	// 从第二个节点开始，逐一和头节点比较。
-	size = ListSize(snake);
-
-	for (i = 1; i<size; i++)
-	{
-		posBody = (POSITION*)ListGetAt(snake, i);
-		if (IsCoincide(posHead, posBody))
-		{
-			return -1;
-		}
-	}
-
-	return 0;
+	return IsSnakeDead();
 }

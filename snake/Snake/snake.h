@@ -8,16 +8,16 @@
 
 enum dirction
 {
- SNAKE_UP,
- SNAKE_DOWN,
- SNAKE_LEFT,
- SNAKE_RIGHT,
+	SNAKE_UP,
+	SNAKE_DOWN,
+	SNAKE_LEFT,
+	SNAKE_RIGHT,
 };
 
 typedef struct _POSITION
 {
- unsigned short x;
- unsigned short y;
+	short x;
+	short y;
 }POSITION, *LPPOSITION;
 
 
