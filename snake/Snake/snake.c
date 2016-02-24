@@ -1,5 +1,6 @@
 #include "snake.h"
 
+// 蛇、食物和蛇运行方向是全局唯一的变量。
 POSITION food;
 PLIST snake;
 dirction snake_dir;
@@ -7,15 +8,14 @@ dirction snake_dir;
 #define INIT_LEN 5
 
 // 判断两个位置POSITION是否重合的函数
-bool IsCoincide(POSITION* one, POSITION* two)
+int IsCoincide(POSITION* one, POSITION* two)
 {
 	if (one->x == two->x && one->y == two->y)
-		return true;
-	return false;
+		return 1;
+	return 0;
 }
 
 //改变方向、向前移动、变长、改变速度、吃到食物之后的动作。
-
 void SetDirction(dirction dir)
 {
 
@@ -41,7 +41,8 @@ void SetDirction(dirction dir)
 	snake_dir = dir;
 }
 
-bool Gorwup()
+// 蛇生长
+int Gorwup()
 {
 	POSITION* pNewTail = (POSITION*)malloc(sizeof(POSITION));
 	POSITION* pTail;		// 倒数第一
@@ -56,13 +57,12 @@ bool Gorwup()
 
 	ListPushBack(snake, pNewTail);
 
-	return true;
+	return 1;
 }
 
 
-
-
-bool CreateFood()
+// 创建一个食物
+int CreateFood()
 {
 	POSITION* posbody;
 	int i;
@@ -83,12 +83,12 @@ new_food:
 			goto new_food;
 		}
 	}
-	return true;
+	return 1;
 
 }
 
-
-bool CreateSnake()
+// 创建蛇
+int CreateSnake()
 {
 	SetDirction(SNAKE_LEFT);
 
@@ -104,11 +104,12 @@ bool CreateSnake()
 		p->y = 10;
 		ListPushBack(snake, p);
 	}
-	return true;
+	return 1;
 }
 
 
-// 0 蛇没有死 else 蛇死了。
+// 判断蛇是否死了。
+// 返回0 蛇没有死 else 蛇死了。
 int IsSnakeDead()
 {
 	POSITION* posBody;
@@ -144,7 +145,9 @@ int IsSnakeDead()
 
 
 // 用来将蛇移动一步，
-// 如果移动之后，蛇没有死则返回0，如果蛇死了（撞到墙或者撞到自己）则返回 -1；
+// 移动以后
+// 如果吃到了食物，则生长。
+// 如果碰到了墙或者自己，则死亡，并返回是否死亡的状态。
 int SnakeMove()
 {
 	// 完成移动的动作

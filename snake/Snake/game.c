@@ -2,8 +2,9 @@
 #include <windows.h> // Windows窗口程序编程，需要引用头文件 Windows.h
 #include "snake.h"
 
-
+// 画图时使用的表示蛇和食物的原型的直径。
 #define SNAKE_CELL_SIZE 20
+// 计时器ID。
 #define TIMER_ID 12340
 
 /********************************************************************************
@@ -12,7 +13,7 @@
 * Windows在C语言的基础上定义了很多Windows特有的类型。都是通过C语言关键字typedef定义的。
 * Windows类型都是全大写。
 *
-* BOOL DWORD LPSTR WPARAM LPARAM HWND等
+* int DWORD LPSTR WPARAM LPARAM HWND等
 * 其中，以H开头的数据类型都是句柄
 *
 *******************************************************************************/
@@ -40,8 +41,8 @@ extern PLIST snake;
 // 函数声明
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
-BOOL  InitApplication(HINSTANCE);
-BOOL  InitInstance(HINSTANCE, int);
+int  InitApplication(HINSTANCE);
+int  InitInstance(HINSTANCE, int);
 LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 
 
@@ -151,7 +152,7 @@ int WINAPI WinMain(
 	// 窗口创建成功，继续运行。
 
 	// 移动窗口，设置窗口的位置和大小
-	//MoveWindow(hwnd, 100, 100, 450, 550, TRUE);
+	//MoveWindow(hwnd, 100, 100, 450, 550, 1);
 
 	// 显示窗口，WinMain函数的nCmdShow参数在这里发挥作用，一般都设置为SW_SHOW
 	ShowWindow(hwnd, nCmdShow);
@@ -175,7 +176,7 @@ int WINAPI WinMain(
 	*
 	*******************************************************************************/
 	MSG msg;
-	BOOL fGotMessage;
+	int fGotMessage;
 
 	// 以下进入消息循环。获取消息--翻译消息--分配消息（由窗口的消息处理函数来处理消息）
 	while ((fGotMessage = GetMessage(&msg, (HWND)NULL, 0, 0)) != 0
@@ -388,7 +389,7 @@ LONG APIENTRY MainWndProc(
 		*******************************************************************************/
 
 		// 创建了一个字体对象
-		hFont = CreateFont(48, 0, 0, 0, FW_DONTCARE, FALSE, TRUE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+		hFont = CreateFont(48, 0, 0, 0, FW_DONTCARE, 0, 1, 0, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
 			CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Impact"));
 
 		// 将这个FONT对象放入DC中
@@ -444,7 +445,7 @@ LONG APIENTRY MainWndProc(
 		}
 		// 设置窗口重绘制区域（全部Client区域），然后更新重绘窗口（发送WM_PAINT消息）
 		// 这里是一个和WM_PAINT及BeginPaint函数配合的过程。
-		InvalidateRect(hwnd, NULL, TRUE);
+		InvalidateRect(hwnd, NULL, 1);
 		UpdateWindow(hwnd);
 		break;
 	}
@@ -461,7 +462,7 @@ LONG APIENTRY MainWndProc(
 		// 设置窗口重绘制，更新窗口
 		// If this parameter is NULL, the entire client area is added to 
 		// the update region.
-		InvalidateRect(hwnd, NULL, TRUE);
+		InvalidateRect(hwnd, NULL, 1);
 		UpdateWindow(hwnd);
 
 		break;

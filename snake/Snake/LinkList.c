@@ -23,12 +23,8 @@ ListGetSize   - 获得当前链表大小（节点数量）。
 #include <stdlib.h> // 使用到了malloc(), free()等函数。
 #include "LinkList.h"
 
-//-- 检测指针是否为0
-#define CHECK_POINTER( ppNode ) \
-  if( ppNode == 0L ) {  \
-  return( pList->ListError = LIST_ERROR_DEREFERENCE_NULL ); \
-        }
 
+// 创建一个链表节点
 PNODE NodeCreate(void* data)
 {
 	PNODE pnode = (PNODE) malloc(sizeof(NODE));
@@ -37,12 +33,14 @@ PNODE NodeCreate(void* data)
 	return pnode;
 }
 
+// 销毁链表节点及其数据。
 void NodeDestory(PNODE node)
 {
 	free(node->data);
 	free(node);
 }
 
+// 获得链表的大小（节点数量）。
 int ListSize(PLIST list)
 {
 	int  cnt;
@@ -58,6 +56,7 @@ int ListSize(PLIST list)
 }
 
 
+// 删除链表中特定位置的节点，并返回数据。
 void* ListDeleteAt(PLIST list, int n)
 {
 	int  i;
@@ -85,6 +84,7 @@ void* ListDeleteAt(PLIST list, int n)
 }
 
 
+// 获得指定位置上节点中的数据。
 void* ListGetAt(PLIST list, unsigned int n)
 {
 	unsigned int   i;
@@ -102,6 +102,7 @@ void* ListGetAt(PLIST list, unsigned int n)
 	return (node->data);
 }
 
+// 创建链表。
 PLIST ListCreate(void* list_data)
 {
 	PLIST new_list;
@@ -116,6 +117,7 @@ PLIST ListCreate(void* list_data)
 	return (new_list);
 }
 
+// 释放整个链表及其所有节点和数据
 void ListDestory(PLIST list)
 {
 	if (list != NULL)
@@ -125,6 +127,7 @@ void ListDestory(PLIST list)
 	}
 }
 
+// 获取链表头的数据，并从链表中删除。
 void* ListPopFront(PLIST list)
 {
 	PNODE tmp;
@@ -142,7 +145,7 @@ void* ListPopFront(PLIST list)
 	return (data);
 }
 
-
+// 获取链表尾的数据，并从链表中删除。
 void* ListPopBack(PLIST list)
 {
 	PNODE previous;
@@ -172,7 +175,7 @@ void* ListPopBack(PLIST list)
 	return (data);
 }
 
-
+// 加入数据到链表尾部。
 void ListPushBack(PLIST list, void* data)
 {
 	PNODE tmp;
@@ -195,7 +198,7 @@ void ListPushBack(PLIST list, void* data)
 	}
 }
 
-
+// 加入数据到链表头部。
 void ListPushFront(PLIST list, void* data)
 {
 	PNODE new_node;

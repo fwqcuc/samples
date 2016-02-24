@@ -22,9 +22,9 @@ typedef struct _POSITION
 
 
 // º¯ÊýÉùÃ÷
-bool IsCoincide(POSITION one, POSITION two);
+int IsCoincide(POSITION one, POSITION two);
 void SetDirction(dirction dir);
-bool Gorwup();
-bool CreateFood();
-bool CreateSnake();
+int Gorwup();
+int CreateFood();
+int CreateSnake();
 int SnakeMove();
