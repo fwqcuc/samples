@@ -42,12 +42,14 @@ void SetDirction(dirction dir)
 }
 
 // 蛇生长
-int Gorwup()
+int SnakeGorwup()
 {
 	POSITION* pNewTail = (POSITION*)malloc(sizeof(POSITION));
 	POSITION* pTail;		// 倒数第一
 	POSITION* pLastButOne;	// 倒数第二
 	int size = ListSize(snake);
+	if (size >= CELLS_X*CELLS_Y)
+		return SNAKE_COMPLETE;
 
 	pTail = (POSITION*)ListGetAt(snake, size - 1);
 	pLastButOne = (POSITION*)ListGetAt(snake, size - 2);
@@ -57,7 +59,7 @@ int Gorwup()
 
 	ListPushBack(snake, pNewTail);
 
-	return 1;
+	return SNAKE_GROWUP;
 }
 
 
@@ -92,7 +94,6 @@ int CreateSnake()
 {
 	SetDirction(SNAKE_LEFT);
 
-	//POSITION h;
 	POSITION* p;
 	snake = ListCreate(NULL);
 
@@ -126,7 +127,7 @@ int IsSnakeDead()
 	if (posHead->x < 0 || posHead->x > CELLS_X ||
 		posHead->y < 0 || posHead->y > CELLS_Y)
 	{
-		return -1;
+		return SNAKE_DEAD;
 	}
 	/// 判断是否碰到自己
 	//// 从第二个节点开始，逐一和头节点比较。
@@ -137,10 +138,10 @@ int IsSnakeDead()
 		posBody = (POSITION*)ListGetAt(snake, i);
 		if (IsCoincide(posHead, posBody))
 		{
-			return -1;
+			return SNAKE_DEAD;
 		}
 	}
-	return 0;
+	return SNAKE_MOVED;
 }
 
 
@@ -187,8 +188,7 @@ int SnakeMove()
 	if (IsCoincide(posHead, &food))
 	{
 		CreateFood();
-		Gorwup();
-		return 0;
+		return SnakeGorwup();
 	}
 
 	return IsSnakeDead();

@@ -33,6 +33,12 @@
 HINSTANCE hinst; /// HINSTANCE是用来表示程序运行实例的句柄，某些API函数会使用到这个变量。
 RECT rectBoundary;
 
+// 每长10，speed up
+#define SPEEDUP_GROWUP_TIME 5
+int score = 0;
+int level = 0;
+
+DWORD dwTimeInterval = 300;
 
 extern POSITION food;
 extern PLIST snake;
@@ -41,11 +47,18 @@ extern PLIST snake;
 // 函数声明
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
-int  InitApplication(HINSTANCE);
-int  InitInstance(HINSTANCE, int);
 LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
+BOOL SpeedUp(HWND hwnd);
 
-
+// 提高速度。
+BOOL SpeedUp(HWND hwnd)
+{
+	dwTimeInterval = (DWORD)(dwTimeInterval*0.9);
+	KillTimer(hwnd, TIMER_ID);
+	SetTimer(hwnd, TIMER_ID, dwTimeInterval, NULL);
+	level++;
+	return TRUE;
+}
 
 
 /*******************************************************************************
@@ -61,8 +74,6 @@ int WINAPI WinMain(
 	LPSTR lpCmdLine,  // 命令行参数，地位和作用类似C语言main函数参数argc和argv,但是没有按空格进行切分
 	int nCmdShow)   // 用于指明窗口是否需要显示的参数。
 {
-
-	hinst = hinstance;
 
 	/*******************************************************************************
 	* ##########   关于 API 函数   ##########
@@ -93,10 +104,16 @@ int WINAPI WinMain(
 	*
 	*******************************************************************************/
 	WNDCLASS wc;
+	// 窗口句柄，hwnd变量是主窗口的句柄，这个程序中只用到了一个窗口。
+	HWND hwnd;
+
+	MSG msg;
+	int fGotMessage;
+
+	hinst = hinstance;
 
 	// Fill in the window class structure with parameters 
 	// that describe the main window. 
-
 
 	wc.style = CS_HREDRAW | CS_VREDRAW;  // 窗口类的样式，这里设置的样式表示窗口在大小变化是需要重绘
 	wc.lpfnWndProc = MainWndProc;  // 一个函数指针，这个函数用来处理窗口消息。 详见 MainWndProc函数的注释。
@@ -121,10 +138,6 @@ int WINAPI WinMain(
 		return -1;
 	}
 	// 窗口注册成功，继续运行。
-
-
-	// 窗口句柄，hwnd变量是主窗口的句柄，这个程序中只用到了一个窗口。
-	HWND hwnd;
 
 
 	// Create the main window. 
@@ -175,8 +188,7 @@ int WINAPI WinMain(
 	* "MSG"就是用来表示"消息"的数据类型。 这里定义了一个MSG类型的变量，变量名为msg
 	*
 	*******************************************************************************/
-	MSG msg;
-	int fGotMessage;
+
 
 	// 以下进入消息循环。获取消息--翻译消息--分配消息（由窗口的消息处理函数来处理消息）
 	while ((fGotMessage = GetMessage(&msg, (HWND)NULL, 0, 0)) != 0
@@ -256,7 +268,7 @@ LONG APIENTRY MainWndProc(
 		// 每300毫秒，hwnd窗口（本窗口）就会收到一个WM_TIMER消息。
 		// 通过TIMER使得程序可以时间周期性的刷新游戏。
 		// 这是Windows“事件驱动型”程序架构的一种体现
-		SetTimer(hwnd, TIMER_ID, 300, NULL);
+		SetTimer(hwnd, TIMER_ID, dwTimeInterval, NULL);
 
 		// 设置随机数种子
 		FILETIME ft;
@@ -390,14 +402,16 @@ LONG APIENTRY MainWndProc(
 
 		// 创建了一个字体对象
 		hFont = CreateFont(48, 0, 0, 0, FW_DONTCARE, 0, 1, 0, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
-			CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Impact"));
+			CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Consolas"));
 
 		// 将这个FONT对象放入DC中
 		if (hOldFont = (HFONT)SelectObject(hdc, hFont))
 		{
+			CHAR szSourceInfo[1024];
+			wsprintf(szSourceInfo, "Sorce %d level %d", score, level);
 			// 如果成功，就输出字符串。
 			TextOut(hdc, rectBoundary.left + 3, rectBoundary.bottom + 3,
-				"贪吃蛇!", lstrlen("贪吃蛇!"));
+				szSourceInfo, lstrlen(szSourceInfo));
 			// 输出完成，将原来的字体对象放回DC中
 			SelectObject(hdc, hOldFont);
 		}
@@ -451,23 +465,39 @@ LONG APIENTRY MainWndProc(
 	}
 	case WM_TIMER:
 	{
-		if (SnakeMove() != 0)
+		switch (SnakeMove())
 		{
+		case SNAKE_DEAD:
 			// 如果蛇已经死了，首先关闭计时器，避免再次调用SnakeMove。
 			KillTimer(hwnd, TIMER_ID);
 			// 然后通知玩家，Game Over了，退出进程。
 			MessageBox(0, "Game Over", "Game Over", 0);
 			ExitProcess(0);
+			break;
+		case SNAKE_COMPLETE:
+			// 如果蛇已经死了，首先关闭计时器，避免再次调用SnakeMove。
+			KillTimer(hwnd, TIMER_ID);
+			// 然后通知玩家，Game Over了，退出进程。
+			MessageBox(0, "You Win!", "You Win", 0);
+			ExitProcess(0);
+			break;
+		case SNAKE_GROWUP:
+			score++;
+			if (score % SPEEDUP_GROWUP_TIME == 0)
+			{
+				SpeedUp(hwnd);
+			}
+		case SNAKE_MOVED:
+			// 设置窗口重绘制，更新窗口
+			// If this parameter is NULL, the entire client area is added to 
+			// the update region.
+			InvalidateRect(hwnd, NULL, 1);
+			UpdateWindow(hwnd);
+			break;
+		
 		}
-		// 设置窗口重绘制，更新窗口
-		// If this parameter is NULL, the entire client area is added to 
-		// the update region.
-		InvalidateRect(hwnd, NULL, 1);
-		UpdateWindow(hwnd);
-
 		break;
 	}
-
 	case WM_DESTROY:
 		ExitProcess(0);
 		break;
