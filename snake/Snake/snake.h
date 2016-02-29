@@ -11,6 +11,9 @@
 #define SNAKE_DEAD		1
 #define SNAKE_COMPLETE	2
 #define SNAKE_GROWUP	3
+#define SNAKE_LEVELUP	4
+#define SNAKE_ERROR		5
+
 
 enum dirction
 {
@@ -20,17 +23,26 @@ enum dirction
 	SNAKE_RIGHT,
 };
 
-typedef struct _POSITION
+typedef struct _GAME_COORD
 {
 	short x;
 	short y;
-}POSITION, *LPPOSITION;
-
+}GAME_COORD, *PGAME_COORD;
 
 // º¯ÊýÉùÃ÷
-int IsCoincide(POSITION one, POSITION two);
+int CoordEqual(PGAME_COORD one, PGAME_COORD two);
 void SetDirction(dirction dir);
 int SnakeGorwup();
 int CreateFood();
-int CreateSnake();
+int CreateSnake(dirction dir, int head_x, int head_y, int level_up, int init_len);
 int SnakeMove();
+
+dirction GetDirction();
+int GetScore();
+int GetLevel();
+PLIST GetSnakeList();
+PGAME_COORD GetFood();
+
+void OnCreate(HWND hwnd);
+void OnTimer(HWND hwnd);
+void OnKeyDown(DWORD vk);
