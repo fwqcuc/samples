@@ -39,6 +39,8 @@ void OnTimer(HWND hwnd)
 		ExitProcess(0);
 		break;
 	case SNAKE_GROWUP:
+		InvalidateRect(hwnd, NULL, 1);
+		UpdateWindow(hwnd);
 		break;
 	case SNAKE_MOVED:
 		// 设置窗口重绘制，更新窗口
