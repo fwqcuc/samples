@@ -1,26 +1,66 @@
+
+// 引用的头文件
 #include "snake.h"
 
-#define INIT_LEN 5
-
+// 食物
 GAME_COORD food;
+// 蛇，链表
 PLIST snake_list;
+// 蛇移动方向
 dirction snake_dir;
-
+// 游戏边界
 GAME_COORD boundary;
 
+// 内部函数申明
+int CoordEqual(PGAME_COORD one, PGAME_COORD two);
+int IsSnakeDead();
 
+
+// 获得食物的坐标。
+PGAME_COORD GetFood()
+{
+	return &food;
+}
+
+// 创建一个食物
+int CreateFood()
+{
+	PGAME_COORD posbody;
+	int i;
+	int size = ListSize(snake_list);
+
+new_food:
+
+	food.x = rand() % boundary.x;
+	food.y = rand() % boundary.y;
+
+	// 判断是否和蛇重叠了。
+
+	for (i = 0; i < size; i++)
+	{
+		posbody = (PGAME_COORD)ListGetAt(snake_list, i);
+		if (CoordEqual(posbody, &(food)))
+		{
+			goto new_food;
+		}
+	}
+	return 1;
+
+}
+
+// 设置边界坐标
 void SetBoundary(int x, int y)
 {
 	boundary.x = x;
 	boundary.y = y;
 }
-
+// 获得边界坐标
 PGAME_COORD GetBoundary()
 {
 	return &boundary;
 }
 
-// 判断两个位置GAME_COORD是否重合的函数
+// 判断两个坐标 GAME_COORD 是否重合的函数
 int CoordEqual(PGAME_COORD one, PGAME_COORD two)
 {
 	if (one->x == two->x && one->y == two->y)
@@ -28,26 +68,31 @@ int CoordEqual(PGAME_COORD one, PGAME_COORD two)
 	return 0;
 }
 
+// 获得当前蛇的方向
 dirction GetDirction()
 {
 	return snake_dir;
 }
 
+// 获得蛇的长度
 int GetSnakeSize()
 {
 	return ListSize(snake_list);
 }
 
+// 获得蛇的第一个节点的坐标
 PGAME_COORD GetSnakeHead()
 {
 	return (PGAME_COORD)ListGetAt(snake_list, 0);
 }
 
+// 获得蛇的最后一个节点的坐标
 PGAME_COORD GetSnakeTail()
 {
 	return (PGAME_COORD)ListGetAt(snake_list, GetSnakeSize()-1);
 }
 
+// 按照序号获得蛇的节点的坐标，不能超过蛇的长度，否则返回NULL
 PGAME_COORD GetSnakeAt(int n)
 {
 	if (n < ListSize(snake_list))
@@ -57,12 +102,7 @@ PGAME_COORD GetSnakeAt(int n)
 
 }
 
-PGAME_COORD GetFood()
-{
-	return &food;
-}
-
-//改变方向、向前移动、变长、改变速度、吃到食物之后的动作。
+// 改变方向
 void SetDirction(dirction dir)
 {
 
@@ -91,9 +131,10 @@ void SetDirction(dirction dir)
 // 蛇生长
 int SnakeGorwup()
 {
-	PGAME_COORD pNewTail = (PGAME_COORD)malloc(sizeof(GAME_COORD));
-	PGAME_COORD pTail;		// 倒数第一
-	PGAME_COORD pLastButOne;	// 倒数第二
+	// 给新的节点分配内存
+	PGAME_COORD pNewTail;
+	PGAME_COORD pTail;		// 倒数第一节点
+	PGAME_COORD pLastButOne;	// 倒数第二节点
 	int size = GetSnakeSize();
 
 	if (size >= boundary.x*boundary.y-1) //长到最长了，游戏结束！~
@@ -102,8 +143,10 @@ int SnakeGorwup()
 	if (size == 0) // 没有头，不知从何生长，返回错误。
 		return SNAKE_ERROR;
 
+	pNewTail = (PGAME_COORD)malloc(sizeof(GAME_COORD));
 	if (size == 1) // 只有一个节点，按照当前方向生长。
 	{
+		
 		pTail = (PGAME_COORD)GetSnakeTail();
 		switch (snake_dir)
 		{
@@ -142,34 +185,10 @@ int SnakeGorwup()
 }
 
 
-// 创建一个食物
-int CreateFood()
-{
-	PGAME_COORD posbody;
-	int i;
-	int size = ListSize(snake_list);
 
-new_food:
-
-	food.x = rand() % boundary.x;
-	food.y = rand() % boundary.y;
-
-	// 判断是否和蛇重叠了。
-
-	for (i = 0; i < size; i++)
-	{
-		posbody = (PGAME_COORD)ListGetAt(snake_list, i);
-		if (CoordEqual(posbody, &(food)))
-		{
-			goto new_food;
-		}
-	}
-	return 1;
-
-}
 
 // 创建蛇
-int CreateSnake(dirction dir, int head_x, int head_y, int init_len)
+void CreateSnake(dirction dir, int head_x, int head_y, int init_len)
 {
 	PGAME_COORD p;
 
@@ -188,7 +207,7 @@ int CreateSnake(dirction dir, int head_x, int head_y, int init_len)
 		//p = (PGAME_COORD)malloc(sizeof(GAME_COORD));
 		SnakeGorwup();
 	}
-	return 1;
+	return;
 }
 
 
@@ -225,6 +244,12 @@ int IsSnakeDead()
 		}
 	}
 	return SNAKE_MOVED;
+}
+
+// 销毁蛇
+void DistroySnake()
+{
+	return ListDistoryAndFree(snake_list);
 }
 
 

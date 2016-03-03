@@ -34,7 +34,7 @@ PNODE NodeCreate(void* data)
 }
 
 // 销毁链表节点及其数据。
-void NodeDestory(PNODE node)
+void NodeDistory(PNODE node)
 {
 	free(node->data);
 	free(node);
@@ -53,6 +53,39 @@ int ListSize(PLIST list)
 		node = node->next;
 	}
 	return (cnt);
+}
+
+// 删除链表中特定位置的节点，并返回数据。
+// 返回 -1 表示错误，
+// 返回 >= 表示插入的位置。
+int ListInsertAt(PLIST list, int n, void* data)
+{
+	int  i;
+	PNODE tmp;
+	PNODE prev;
+	PNODE new_node;
+
+	if (n < 0)
+		return -1;
+	if (n == 0)
+	{
+		ListPushFront(list, data);
+		return 0;
+	}
+	i = 1;
+	tmp = list->first;
+	while (i < n)
+	{
+		prev = tmp;
+		tmp = tmp->next;
+		if (!tmp)
+			return -1;
+		++i;
+	}
+	new_node = NodeCreate(data);
+	prev->next = new_node;
+	new_node->next = tmp->next;
+	return i;
 }
 
 
@@ -117,12 +150,25 @@ PLIST ListCreate(void* list_data)
 	return (new_list);
 }
 
-// 释放整个链表及其所有节点和数据
-void ListDestory(PLIST list)
+// 只释放链表头，而不释放其他。
+void ListDistory(PLIST list)
 {
 	if (list != NULL)
 	{
-		ListClear(list);
+		if (list->list_data != NULL)
+			free(list->list_data);
+		free(list);
+	}
+}
+
+// 释放整个链表及其所有节点和数据
+void ListDistoryAndFree(PLIST list)
+{
+	if (list != NULL)
+	{
+		ListClearAndFree(list);
+		if (list->list_data != NULL)
+			free(list->list_data);
 		free(list);
 	}
 }
@@ -216,7 +262,7 @@ void ListPushFront(PLIST list, void* data)
 
 
 
-void ListClear(PLIST list)
+void ListClearAndFree(PLIST list)
 {
 	PNODE tmp;
 	PNODE node;
@@ -227,7 +273,7 @@ void ListClear(PLIST list)
 		while (node)
 		{
 			tmp = node->next;
-			NodeDestory(node);
+			NodeDistory(node);
 			node = tmp;
 		}
 		list->first = 0;

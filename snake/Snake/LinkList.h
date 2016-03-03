@@ -18,15 +18,16 @@ typedef struct _LIST
 
 PLIST ListCreate(void* list_data);
 PNODE NodeCreate(void* data);// private;
-void NodeDestory(PNODE);
+void NodeDistory(PNODE);
 void ListPushBack(PLIST list, void* data);
 void ListPushFront(PLIST list, void* data);
 void* ListPopBack(PLIST list);
 void* ListPopFront(PLIST list);
-//void ListInsertAt(PLIST list, unsigned int n, void* data);
-//void* ListDeleteAt(PLIST list, int n);
-void ListClear(PLIST list);
-void ListDestory(PLIST list);
+int ListInsertAt(PLIST list, unsigned int n, void* data);
+void* ListDeleteAt(PLIST list, int n);
+void ListClearAndFree(PLIST list);
+void ListDistoryAndFree(PLIST list);
+void ListDistory(PLIST list);
 int ListSize(PLIST list);
 void* ListGetAt(PLIST list, unsigned int n);
 

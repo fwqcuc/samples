@@ -11,8 +11,8 @@
 * Windows在C语言的基础上定义了很多Windows特有的类型。都是通过C语言关键字typedef定义的。
 * Windows类型都是全大写。
 *
-* int DWORD LPSTR WPARAM LPARAM HWND等
-* 其中，以H开头的数据类型都是句柄
+* DWORD LPSTR WPARAM LPARAM HWND等
+* 其中，以'H'大头的数据类型都是句柄
 *
 *******************************************************************************/
 
@@ -30,9 +30,6 @@
 // 全局变量
 HINSTANCE hinst; /// HINSTANCE是用来表示程序运行实例的句柄，某些API函数会使用到这个变量。
 RECT rectBoundary;
-
-PGAME_COORD lpFood;
-
 
 // 函数声明
 
@@ -216,6 +213,7 @@ void OnPaint(HWND hwnd)
 	HFONT hFont, hOldFont;
 
 	PGAME_COORD pSnakeBody;
+	PGAME_COORD lpFood;
 	int i, snake_size;
 
 	/*******************************************************************************
@@ -325,29 +323,33 @@ void OnPaint(HWND hwnd)
 }
 
 
+/*******************************************************************************
+* ##########   根据游戏界面的坐标系大小设置游戏窗口大小    ##########
+*******************************************************************************/
+
 void ReSizeGameWnd(HWND hwnd)
 {
-	POINT ptLeftTop;
-	POINT ptRightBottom;
+	POINT ptLeftTop;		// 左上角
+	POINT ptRightBottom;	// 右下角
 	RECT rectWindow;
 	PGAME_COORD pCoordBoundary = GetBoundary();
-	
+
 	// 设置游戏边界
 	rectBoundary.left = 10;
 	rectBoundary.top = 10;
 	rectBoundary.right = 10 + CELL_DIM*(pCoordBoundary->x + 1);
 	rectBoundary.bottom = 10 + CELL_DIM*(pCoordBoundary->y + 1);
 
-
+	// 计算上下左右角的位置
 	ptLeftTop.x = rectBoundary.left;
 	ptLeftTop.y = rectBoundary.top;
 	ptRightBottom.x = rectBoundary.right;
 	ptRightBottom.y = rectBoundary.bottom;
-
 	ClientToScreen(hwnd, &ptLeftTop);
 	ClientToScreen(hwnd, &ptRightBottom);
 
 	GetWindowRect(hwnd, &rectWindow);
+	// 计算好了，设置窗口大小。
 	MoveWindow(hwnd,
 		rectWindow.left,
 		rectWindow.top,
@@ -361,7 +363,7 @@ void ReSizeGameWnd(HWND hwnd)
 * ##########   消息处理回调函数    ##########
 *
 * 当窗口每收到一个消息，此函数就被调用一次。
-* 由于消息的到达具有随机性，因此，消息函数的调用是回调的，即：
+* 由于消息的到达不确定性，因此，消息函数的调用是回调的，即：
 * 应用程序定义好消息处理函数，但是不直接调用，而是将函数指针传递给操作系统（通过RigesterClass）
 * 当消息达到时，操作系统通过这个函数指针调用消息处理函数，处理和相应消息。
 *
@@ -419,12 +421,9 @@ LONG APIENTRY MainWndProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		CreateGame(hwnd, 300, 5, 0.9, 6, 6, 2, 2, 2, SNAKE_LEFT);
+		CreateGame(hwnd, 300, 5, 0.8, 20, 20, 5, 5, 3, SNAKE_RIGHT);
 		ReSizeGameWnd(hwnd);
-
-
-		break; // 消息处理完成。
-
+		break;
 
 		// 当系统认为窗口上的GDI对象应该被重绘时，会向窗口发送一个WM_PAINT消息。
 		// 当然应用程序也可以通过调用 UpateWindow来主动向窗口发送一个WM_PAINT消息。
@@ -433,7 +432,7 @@ LONG APIENTRY MainWndProc(
 	case WM_PAINT:
 
 		OnPaint(hwnd);
-	break;
+		break;
 
 	case WM_KEYDOWN:
 	{
