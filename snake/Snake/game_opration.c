@@ -1,13 +1,28 @@
 #include <Windows.h>
 #include "snake.h"
 
-#define SPEEDUP_GROWUP_TIME 5
 // 计时器ID。
 #define TIMER_ID 12340
 
 DWORD dwTimeInterval;
 double dbSpeedUpRatio;
+int level_up_period;
 
+
+int score = 0;
+int level = 0;
+
+#define IS_SPEEDUP(size) (size % level_up_period) == 0
+
+int GetScore()
+{
+	return score;
+}
+
+int GetLevel()
+{
+	return level;
+}
 
 // 提高速度。
 BOOL SpeedUp(HWND hwnd)
@@ -31,14 +46,31 @@ void OnTimer(HWND hwnd)
 		MessageBox(0, "Game Over", "Game Over", 0);
 		ExitProcess(0);
 		break;
-	case SNAKE_COMPLETE:
-		// 如果蛇已经死了，首先关闭计时器，避免再次调用SnakeMove。
-		KillTimer(hwnd, TIMER_ID);
-		// 然后通知玩家，Game Over了，退出进程。
-		MessageBox(0, "You Win!", "You Win", 0);
-		ExitProcess(0);
-		break;
-	case SNAKE_GROWUP:
+
+	case SNAKE_EATEN_FOOD:
+		score++;
+		CreateFood();
+		switch (SnakeGorwup())
+		{
+		case SNAKE_COMPLETE:
+			// 如果蛇已经死了，首先关闭计时器，避免再次调用SnakeMove。
+			KillTimer(hwnd, TIMER_ID);
+			// 然后通知玩家，Game Over了，退出进程。
+			MessageBox(0, "You Win!", "You Win", 0);
+			ExitProcess(0);
+			break;
+		case SNAKE_ERROR:
+			KillTimer(hwnd, TIMER_ID);
+			MessageBox(hwnd, "Error!!", "Error!1", MB_OK);
+			ExitProcess(0);
+			break;
+		case SNAKE_GROWUP:
+			if (IS_SPEEDUP(GetSnakeSize()))
+			{
+				level++;
+			}
+			break;
+		}
 		InvalidateRect(hwnd, NULL, 1);
 		UpdateWindow(hwnd);
 		break;
@@ -48,9 +80,6 @@ void OnTimer(HWND hwnd)
 		// the update region.
 		InvalidateRect(hwnd, NULL, 1);
 		UpdateWindow(hwnd);
-		break;
-	case SNAKE_LEVELUP:
-		SpeedUp(hwnd);
 		break;
 	}
 	return;
@@ -82,7 +111,10 @@ void OnKeyDown(DWORD vk)
 
 
 // 程序启动以后进行的初始化操作。
-void OnCreate(HWND hwnd)
+void CreateGame(HWND hwnd, 
+	int init_timer_interval, int period, double speedup_ratio,
+	int max_x, int max_y, int init_x, int init_y, 
+	int init_len, dirction init_dir)
 {
 	// 设置随机数种子
 	// 食物的位置是随机的。
@@ -94,13 +126,17 @@ void OnCreate(HWND hwnd)
 	// 每300毫秒，hwnd窗口（本窗口）就会收到一个WM_TIMER消息。
 	// 通过TIMER使得程序可以时间周期性的刷新游戏。
 	// 这是Windows“事件驱动型”程序架构的一种体现
-	dbSpeedUpRatio = 0.9;
-	dwTimeInterval = 300;
+	dbSpeedUpRatio = speedup_ratio;
+	dwTimeInterval = init_timer_interval;
+	level_up_period = period;
+
+	SetBoundary(max_x, max_y);
+
 	//snake
 	SetTimer(hwnd, TIMER_ID, dwTimeInterval, NULL);
 
 	// 创建表示贪吃蛇的数据结构
-	CreateSnake(SNAKE_LEFT, 10, 10, 5, 5);
+	CreateSnake(init_dir, init_x, init_y, 5);
 
 	// 创建表示食物的数据结构
 	CreateFood();

@@ -66,9 +66,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="game.c" />
+    <ClCompile Include="game_opration.c" />
     <ClCompile Include="LinkList.c" />
-    <ClCompile Include="snake.c" />
+    <ClCompile Include="snake_and_food.c" />
     <ClCompile Include="snake.h" />
     <ClCompile Include="ui.c" />
   </ItemGroup>

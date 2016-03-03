@@ -3,7 +3,7 @@
 #include "snake.h"
 
 // ª≠Õº ± π”√µƒ±Ì æ…ﬂ∫Õ ≥ŒÔµƒ‘≠–Õµƒ÷±æ∂°£
-#define snake_CELL_SIZE 20
+#define CELL_DIM 20
 
 /********************************************************************************
 * ##########πÿ”⁄Windows ˝æ›¿‡–Õ##########
@@ -32,7 +32,6 @@ HINSTANCE hinst; /// HINSTANCE «”√¿¥±Ì æ≥Ã–Ú‘À–– µ¿˝µƒæ‰±˙£¨ƒ≥–©API∫Ø ˝ª· π”√µΩ’
 RECT rectBoundary;
 
 PGAME_COORD lpFood;
-PLIST snake;
 
 
 // ∫Ø ˝…˘√˜
@@ -216,7 +215,7 @@ void OnPaint(HWND hwnd)
 
 	HFONT hFont, hOldFont;
 
-	PGAME_COORD sn_pos;
+	PGAME_COORD pSnakeBody;
 	int i, snake_size;
 
 	/*******************************************************************************
@@ -245,10 +244,10 @@ void OnPaint(HWND hwnd)
 	lpFood = GetFood();
 	// £®Õ÷£©‘≤–Œ£¨ π”√…œ√Ê—°‘ÒµƒPENπ¥¿’±ﬂøÚ£¨BRUSHÃÓ≥‰
 	Ellipse(hdc,
-		lpFood->x * snake_CELL_SIZE + rectBoundary.left,
-		lpFood->y * snake_CELL_SIZE + rectBoundary.top,
-		(lpFood->x + 1)*snake_CELL_SIZE + rectBoundary.left,
-		(lpFood->y + 1)*snake_CELL_SIZE + rectBoundary.top);
+		lpFood->x * CELL_DIM + rectBoundary.left,
+		lpFood->y * CELL_DIM + rectBoundary.top,
+		(lpFood->x + 1)*CELL_DIM + rectBoundary.left,
+		(lpFood->y + 1)*CELL_DIM + rectBoundary.top);
 
 	/*******************************************************************************
 	* #############  ª≠…ﬂ  ################
@@ -257,16 +256,16 @@ void OnPaint(HWND hwnd)
 
 	SelectObject(hdc, hBrushSnake);
 
-	snake_size = ListSize(snake);
+	snake_size = GetSnakeSize();
 
 	for (i = 0; i < snake_size; i++)
 	{
-		sn_pos = (PGAME_COORD)ListGetAt(snake, i);
+		pSnakeBody = (PGAME_COORD)GetSnakeAt(i);
 		Ellipse(hdc,
-			sn_pos->x * snake_CELL_SIZE + rectBoundary.left,
-			sn_pos->y * snake_CELL_SIZE + rectBoundary.top,
-			(sn_pos->x + 1)*snake_CELL_SIZE + rectBoundary.left,
-			(sn_pos->y + 1)*snake_CELL_SIZE + rectBoundary.top);
+			pSnakeBody->x * CELL_DIM + rectBoundary.left,
+			pSnakeBody->y * CELL_DIM + rectBoundary.top,
+			(pSnakeBody->x + 1)*CELL_DIM + rectBoundary.left,
+			(pSnakeBody->y + 1)*CELL_DIM + rectBoundary.top);
 	}
 
 	/*******************************************************************************
@@ -325,6 +324,37 @@ void OnPaint(HWND hwnd)
 	EndPaint(hwnd, &ps);
 }
 
+
+void ReSizeGameWnd(HWND hwnd)
+{
+	POINT ptLeftTop;
+	POINT ptRightBottom;
+	RECT rectWindow;
+	PGAME_COORD pCoordBoundary = GetBoundary();
+	
+	// …Ë÷√”Œœ∑±ﬂΩÁ
+	rectBoundary.left = 10;
+	rectBoundary.top = 10;
+	rectBoundary.right = 10 + CELL_DIM*(pCoordBoundary->x + 1);
+	rectBoundary.bottom = 10 + CELL_DIM*(pCoordBoundary->y + 1);
+
+
+	ptLeftTop.x = rectBoundary.left;
+	ptLeftTop.y = rectBoundary.top;
+	ptRightBottom.x = rectBoundary.right;
+	ptRightBottom.y = rectBoundary.bottom;
+
+	ClientToScreen(hwnd, &ptLeftTop);
+	ClientToScreen(hwnd, &ptRightBottom);
+
+	GetWindowRect(hwnd, &rectWindow);
+	MoveWindow(hwnd,
+		rectWindow.left,
+		rectWindow.top,
+		ptLeftTop.x - rectWindow.left + ptRightBottom.x - rectWindow.left, // ±£¥Ê±ﬂΩÁ∫Õ◊Û”“¡Ω±ﬂ±ﬂøÚœ‡µ»°£
+		rectBoundary.bottom + 120, //∏¯ª˝∑÷–≈œ¢¡Ù≥ˆœ‘ æø’º‰°£
+		TRUE);
+}
 
 
 /*******************************************************************************
@@ -389,31 +419,9 @@ LONG APIENTRY MainWndProc(
 		// µ±¥∞ø⁄±ª¥¥Ω® ±£¨ ’µΩµƒµ⁄“ª∏ˆœ˚œ¢æÕ «WM_CREATE£¨
 		// “ª∞„ ’µΩ’‚∏ˆœ˚œ¢¥¶¿Ìπ˝≥Ã÷–£¨ø…“‘”√¿¥Ω¯––“ª–©≥ı ºªØµƒπ§◊˜
 	case WM_CREATE:
+		CreateGame(hwnd, 300, 5, 0.9, 6, 6, 2, 2, 2, SNAKE_LEFT);
+		ReSizeGameWnd(hwnd);
 
-		OnCreate(hwnd);
-		snake = GetSnakeList();
-
-		// …Ë÷√”Œœ∑±ﬂΩÁ
-		rectBoundary.left = 10;
-		rectBoundary.top = 10;
-		rectBoundary.right = 10 + snake_CELL_SIZE*(CELLS_X + 1);
-		rectBoundary.bottom = 10 + snake_CELL_SIZE*(CELLS_Y + 1);
-		POINT ptLeftTop;
-		POINT ptRightBottom;
-		ptLeftTop.x = rectBoundary.left;
-		ptLeftTop.y = rectBoundary.top;
-		ptRightBottom.x = rectBoundary.right;
-		ptRightBottom.y = rectBoundary.bottom;
-		ClientToScreen(hwnd, &ptLeftTop);
-		ClientToScreen(hwnd, &ptRightBottom);
-		RECT rectWindow;
-		GetWindowRect(hwnd, &rectWindow);
-		MoveWindow(hwnd,
-			rectWindow.left,
-			rectWindow.top,
-			ptLeftTop.x - rectWindow.left + ptRightBottom.x-rectWindow.left,
-			rectWindow.bottom - rectWindow.top,
-			TRUE);
 
 		break; // œ˚œ¢¥¶¿ÌÕÍ≥…°£
 
