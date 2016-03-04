@@ -17,7 +17,6 @@ typedef struct _LIST
 
 
 PLIST ListCreate(void* list_data);
-PNODE NodeCreate(void* data);// private;
 void NodeDistory(PNODE);
 void ListPushBack(PLIST list, void* data);
 void ListPushFront(PLIST list, void* data);

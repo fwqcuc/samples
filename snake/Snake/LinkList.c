@@ -58,9 +58,9 @@ int ListSize(PLIST list)
 // 删除链表中特定位置的节点，并返回数据。
 // 返回 -1 表示错误，
 // 返回 >= 表示插入的位置。
-int ListInsertAt(PLIST list, int n, void* data)
+int ListInsertAt(PLIST list, unsigned int n, void* data)
 {
-	int  i;
+	unsigned int  i;
 	PNODE tmp;
 	PNODE prev;
 	PNODE new_node;
@@ -74,6 +74,7 @@ int ListInsertAt(PLIST list, int n, void* data)
 	}
 	i = 1;
 	tmp = list->first;
+	prev = tmp;
 	while (i < n)
 	{
 		prev = tmp;
@@ -97,6 +98,7 @@ void* ListDeleteAt(PLIST list, int n)
 	PNODE prev;
 
 	tmp = list->first;
+	prev = tmp;
 	if (n < 1)
 		return (NULL);
 	if (n == 0)
@@ -104,6 +106,7 @@ void* ListDeleteAt(PLIST list, int n)
 		return ListPopFront(list);
 	}
 	i = 1;
+	
 	while (i < n)
 	{
 		prev = tmp;

@@ -11,13 +11,13 @@
 #define SNAKE_ERROR			5
 
 // 蛇的方向
-enum dirction
+typedef enum _dirction
 {
 	SNAKE_UP,
 	SNAKE_DOWN,
 	SNAKE_LEFT,
 	SNAKE_RIGHT,
-};
+}dirction;
 
 // 游戏坐标
 typedef struct _GAME_COORD

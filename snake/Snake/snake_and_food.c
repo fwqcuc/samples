@@ -249,7 +249,8 @@ int IsSnakeDead()
 // Ïú»ÙÉß
 void DistroySnake()
 {
-	return ListDistoryAndFree(snake_list);
+	ListDistoryAndFree(snake_list);
+	return;
 }
 
 
