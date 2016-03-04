@@ -3,8 +3,9 @@
 
 // 计时器ID。
 #define TIMER_ID 12340
-
+// 计时器到时间隔
 DWORD dwTimerElapse;
+// 每提高一级，计时器时钟周期缩短的比例。
 DOUBLE dbLevelSpeedupRatio;
 // 此变量表示多少个积分上升一个级别
 DWORD dwOneLevelScores;
@@ -82,16 +83,8 @@ void OnTimer(HWND hwnd)
 			}
 			break;
 		} //switch (SnakeGorwup()) 结束
-		// 刷新界面
-		InvalidateRect(hwnd, NULL, 1);
-		UpdateWindow(hwnd);
 		break;
 	case SNAKE_MOVED:
-		// 设置窗口重绘制，更新窗口
-		// If this parameter is NULL, the entire client area is added to 
-		// the update region.
-		InvalidateRect(hwnd, NULL, 1);
-		UpdateWindow(hwnd);
 		break;
 	}
 	return;

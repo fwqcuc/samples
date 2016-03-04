@@ -2,8 +2,8 @@
 #include <windows.h> // Windows窗口程序编程，需要引用头文件 Windows.h
 #include "snake.h"
 
-// 画图时使用的表示蛇和食物的原型的直径。
-#define CELL_DIM 20
+// 画图时使用的表示蛇和食物的圆形的直径。
+#define CELL_PIXEL 20
 
 /********************************************************************************
 * ##########关于Windows数据类型##########
@@ -143,9 +143,6 @@ int WINAPI WinMain(
 
 	// 窗口创建成功，继续运行。
 
-	// 移动窗口，设置窗口的位置和大小
-	//MoveWindow(hwnd, 100, 100, 450, 550, 1);
-
 	// 显示窗口，WinMain函数的nCmdShow参数在这里发挥作用，一般都设置为SW_SHOW
 	ShowWindow(hwnd, nCmdShow);
 
@@ -179,7 +176,7 @@ int WINAPI WinMain(
 	return msg.wParam;
 }
 
-void OnPaint(HWND hwnd)
+void GamePaint(HWND hwnd)
 {
 	/*******************************************************************************
 	* ##########   关于 GDI    ##########
@@ -199,10 +196,11 @@ void OnPaint(HWND hwnd)
 	* 使用GDI输出各类图像有其特定的流程，如下:
 	*******************************************************************************/
 
-	PAINTSTRUCT ps;
-	HDC hdc;
-
 	HPEN hpen;
+	//HBRUSH hbrush;
+	HDC hdc, hdcmem;
+	HBITMAP hbmMem;
+
 	HPEN hPenBoundary;
 	HPEN hOldPen;
 
@@ -212,17 +210,27 @@ void OnPaint(HWND hwnd)
 
 	HFONT hFont, hOldFont;
 
+	RECT rect;
+
 	PGAME_COORD pSnakeBody;
 	PGAME_COORD lpFood;
 	int i, snake_size;
 
-	/*******************************************************************************
-	* #############  BeginPaint函数  ################
-	* BeginPaint 用于通知系统绘图过程开始，系统返回绘制所需的资源如DC,与之对应的是EndPaint。
-	* BeginPaint 函数会自动判断那些区域需要更新绘制，那些不用。
-	* BeginPaint 和 EndPaint 只能在WM_PAINT消息的处理过程中调用，而且必须配合使用。
-	*******************************************************************************/
-	hdc = BeginPaint(hwnd, &ps);
+	GetClientRect(hwnd, &rect);
+
+	hdc = GetDC(hwnd);
+
+	// 注意 CreateCompatibleDC 中的这一段话：
+	// Before an application can use a memory DC for drawing operations, 
+	// it must select a bitmap of the correct width and height into the DC. 
+	// To select a bitmap into a DC, use the CreateCompatibleBitmap function
+	// 注意：
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/dd183488(v=vs.85).aspx
+	hdcmem = CreateCompatibleDC(hdc);
+	hbmMem = CreateCompatibleBitmap(hdc,
+		rect.right - rect.left, rect.bottom - rect.top);
+
+	SelectObject(hdcmem, hbmMem);
 
 	// 创建需要用到的PEN和BRUSH
 	hbrushFood = CreateSolidBrush(RGB(152, 251, 152)); // RGB颜色，实心BRUSH
@@ -230,56 +238,64 @@ void OnPaint(HWND hwnd)
 	hBrushSnake = CreateSolidBrush(RGB(193, 205, 205));
 	hPenBoundary = CreatePen(0, 3, RGB(139, 134, 130));
 
+
+	/*******************************************************************************
+	* #############  画背景  ################
+	*
+	*******************************************************************************/
+	FillRect(hdcmem, &rect, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
 	/*******************************************************************************
 	* #############  画食物  ################
 	*
 	*******************************************************************************/
 
 	// 将画图需要用的PEN和BRUSH选择到DC中
-	hOldBrush = (HBRUSH)SelectObject(hdc, hbrushFood);
-	hOldPen = (HPEN)SelectObject(hdc, hpen);
+	hOldBrush = (HBRUSH)SelectObject(hdcmem, hbrushFood);
+	hOldPen = (HPEN)SelectObject(hdcmem, hpen);
+
 
 	lpFood = GetFood();
 	// （椭）圆形，使用上面选择的PEN勾勒边框，BRUSH填充
-	Ellipse(hdc,
-		lpFood->x * CELL_DIM + rectBoundary.left,
-		lpFood->y * CELL_DIM + rectBoundary.top,
-		(lpFood->x + 1)*CELL_DIM + rectBoundary.left,
-		(lpFood->y + 1)*CELL_DIM + rectBoundary.top);
+	Ellipse(hdcmem,
+		lpFood->x * CELL_PIXEL + rectBoundary.left,
+		lpFood->y * CELL_PIXEL + rectBoundary.top,
+		(lpFood->x + 1)*CELL_PIXEL + rectBoundary.left,
+		(lpFood->y + 1)*CELL_PIXEL + rectBoundary.top);
 
 	/*******************************************************************************
 	* #############  画蛇  ################
 	*
 	*******************************************************************************/
 
-	SelectObject(hdc, hBrushSnake);
+	SelectObject(hdcmem, hBrushSnake);
 
 	snake_size = GetSnakeSize();
 
 	for (i = 0; i < snake_size; i++)
 	{
 		pSnakeBody = (PGAME_COORD)GetSnakeAt(i);
-		Ellipse(hdc,
-			pSnakeBody->x * CELL_DIM + rectBoundary.left,
-			pSnakeBody->y * CELL_DIM + rectBoundary.top,
-			(pSnakeBody->x + 1)*CELL_DIM + rectBoundary.left,
-			(pSnakeBody->y + 1)*CELL_DIM + rectBoundary.top);
+		Ellipse(hdcmem,
+			pSnakeBody->x * CELL_PIXEL + rectBoundary.left,
+			pSnakeBody->y * CELL_PIXEL + rectBoundary.top,
+			(pSnakeBody->x + 1)*CELL_PIXEL + rectBoundary.left,
+			(pSnakeBody->y + 1)*CELL_PIXEL + rectBoundary.top);
 	}
 
 	/*******************************************************************************
-	* #############  画边框  ################
+	* #############  画墙  ################
 	*
 	*******************************************************************************/
 
-	SelectObject(hdc, hPenBoundary);
+	SelectObject(hdcmem, hPenBoundary);
 
 	// 将PEN移动到需要绘制的方框的左上角
-	MoveToEx(hdc, rectBoundary.left, rectBoundary.top, NULL);
+	MoveToEx(hdcmem, rectBoundary.left, rectBoundary.top, NULL);
 	// 画了一个方框。演示LineTo函数
-	LineTo(hdc, rectBoundary.left, rectBoundary.bottom);
-	LineTo(hdc, rectBoundary.right, rectBoundary.bottom);
-	LineTo(hdc, rectBoundary.right, rectBoundary.top);
-	LineTo(hdc, rectBoundary.left, rectBoundary.top);
+	LineTo(hdcmem, rectBoundary.left, rectBoundary.bottom);
+	LineTo(hdcmem, rectBoundary.right, rectBoundary.bottom);
+	LineTo(hdcmem, rectBoundary.right, rectBoundary.top);
+	LineTo(hdcmem, rectBoundary.left, rectBoundary.top);
 
 	/*******************************************************************************
 	* #############  写一行字  ################
@@ -291,35 +307,40 @@ void OnPaint(HWND hwnd)
 		CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Consolas"));
 
 	// 将这个FONT对象放入DC中
-	if (hOldFont = (HFONT)SelectObject(hdc, hFont))
+	if (hOldFont = (HFONT)SelectObject(hdcmem, hFont))
 	{
 		CHAR szSourceInfo[1024];
 		wsprintf(szSourceInfo, "Sorce %d level %d", GetScore(), GetLevel());
 		// 如果成功，就输出字符串。
-		TextOut(hdc, rectBoundary.left + 3, rectBoundary.bottom + 3,
+		TextOut(hdcmem, rectBoundary.left + 3, rectBoundary.bottom + 3,
 			szSourceInfo, lstrlen(szSourceInfo));
 		// 输出完成，将原来的字体对象放回DC中
-		SelectObject(hdc, hOldFont);
+		SelectObject(hdcmem, hOldFont);
 	}
+
+	// 在内存DC中画完，一次输出的窗口DC上。
+	BitBlt(hdc,
+		0, 0, rect.right - rect.left, rect.bottom - rect.top,
+		hdcmem, 0, 0, SRCCOPY);
 
 	/*******************************************************************************
 	* #############  回复和释放资源  ################
 	*
 	*******************************************************************************/
-	SelectObject(hdc, hOldBrush);
-	SelectObject(hdc, hOldPen);
-
+	// 回收资源
+	// DeleteObject 释放GDI对象
+	DeleteObject(hbmMem);
+	DeleteObject(hdcmem);
 	DeleteObject(hbrushFood);
 	DeleteObject(hBrushSnake);
 	DeleteObject(hpen);
 	DeleteObject(hPenBoundary);
 	DeleteObject(hFont);
 	/*******************************************************************************
-	* #############  EndPaint函数  ################
-	* EndPaint释放 BeginPaint 函数占用的DC等系统资源。
-	* BeginPaint 和 EndPaint函数必须配合使用。
+	* #############  ReleaseDC 函数  ################
+	* 释放占用的DC等系统资源。
 	*******************************************************************************/
-	EndPaint(hwnd, &ps);
+	ReleaseDC(hwnd, hdc);
 }
 
 
@@ -337,8 +358,8 @@ void ReSizeGameWnd(HWND hwnd)
 	// 设置游戏边界
 	rectBoundary.left = 10;
 	rectBoundary.top = 10;
-	rectBoundary.right = 10 + CELL_DIM*(pCoordBoundary->x + 1);
-	rectBoundary.bottom = 10 + CELL_DIM*(pCoordBoundary->y + 1);
+	rectBoundary.right = 10 + CELL_PIXEL*(pCoordBoundary->x + 1);
+	rectBoundary.bottom = 10 + CELL_PIXEL*(pCoordBoundary->y + 1);
 
 	// 计算上下左右角的位置
 	ptLeftTop.x = rectBoundary.left;
@@ -421,7 +442,7 @@ LONG APIENTRY MainWndProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		CreateGame(hwnd, 300, 5, 0.8, 20, 20, 5, 5, 3, SNAKE_RIGHT);
+		CreateGame(hwnd, 200, 5, 0.7, 20, 20, 5, 5, 3, SNAKE_RIGHT);
 		ReSizeGameWnd(hwnd);
 		break;
 
@@ -431,24 +452,21 @@ LONG APIENTRY MainWndProc(
 		// 如果不是在WM_PAINT消息的处理过程中绘制GDI图形，那么在窗口刷新时就会被新被抹除和覆盖
 	case WM_PAINT:
 
-		OnPaint(hwnd);
+		GamePaint(hwnd);
 		break;
 
 	case WM_KEYDOWN:
-	{
+	
 		OnKeyDown(wParam);
-
-		// 设置窗口重绘制区域（全部Client区域），然后更新重绘窗口（发送WM_PAINT消息）
-		// 这里是一个和WM_PAINT及BeginPaint函数配合的过程。
-		InvalidateRect(hwnd, NULL, 1);
-		UpdateWindow(hwnd);
+		GamePaint(hwnd);
 		break;
-	}
+	
 	case WM_TIMER:
-	{
+	
 		OnTimer(hwnd);
+		GamePaint(hwnd);
 		break;
-	}
+	
 	case WM_DESTROY:
 		ExitProcess(0);
 		break;
