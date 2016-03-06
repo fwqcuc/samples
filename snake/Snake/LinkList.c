@@ -3,20 +3,21 @@
 单链表
 
 FUNCTIONS :
-ListCreate   - 创建一个新的链表。
-ListInsertAt  - 插入节点到链表。
-ListPushFront  - 在链表头部插入节点。
-ListPushBack  - 在链表尾部插入节点。
-ListPopFront  - 删除链表头部节点。
-ListPopBack   - 删除链表尾部节点。
-ListGetFront  - 获得第一个节点
-ListGetBack   - 获得最后一个节点。
-ListGetNodeAt  - 根据序号获得节点。
-ListDeleteNodeAt - 根据序号删除节点。
-ListDestroy   - 删除整个链表，并释放内存。
-ListCleaer   - 清楚链表中的所有节点和数据。
-ListGetError  - 获得错误编号
-ListGetSize   - 获得当前链表大小（节点数量）。
+ListCreate			- 创建一个新的链表。
+ListInsertAt		- 插入节点到链表。
+ListPushFront		- 在链表头部插入节点。
+ListPushBack		- 在链表尾部插入节点。
+ListPopFront		- 删除链表头部节点。
+ListPopBack			- 删除链表尾部节点。
+ListGetFront		- 获得第一个节点
+ListGetBack			- 获得最后一个节点。
+ListGetNodeAt		- 根据序号获得节点。
+ListDeleteNodeAt	- 根据序号删除节点。
+ListDestroy			- 删除整个链表。
+ListDestroyAndFree	- 删除整个链表，并释放数据。
+ListClear			- 删除链表中的所有节点。
+ListClearAndFree	- 清除链表中的所有节点，并释放数据。
+ListGetSize			- 获得当前链表大小（节点数量）。
 
 
 ************************************************************************/
@@ -191,13 +192,13 @@ void* ListPopFront(PLIST list)
 			free(tmp);
 		}
 	}
-	return (data);
+	return (data); 
 }
 
 // 获取链表尾的数据，并从链表中删除。
 void* ListPopBack(PLIST list)
 {
-	PNODE previous;
+	PNODE prev;
 	PNODE current;
 	PNODE node = list->first;
 	void* data;
@@ -211,16 +212,16 @@ void* ListPopBack(PLIST list)
 		node = NULL;
 		return (data);
 	}
-	previous = node;
+	prev = node;
 	current = (node)->next;
 	while (current->next)
 	{
-		previous = current;
+		prev = current;
 		current = current->next;
 	}
 	data = current->data;
 	free(current);
-	previous->next = NULL;
+	prev->next = NULL;
 	return (data);
 }
 
@@ -264,7 +265,7 @@ void ListPushFront(PLIST list, void* data)
 }
 
 
-
+// 删除链表所有节点，free数据。
 void ListClearAndFree(PLIST list)
 {
 	PNODE tmp;
@@ -282,5 +283,3 @@ void ListClearAndFree(PLIST list)
 		list->first = 0;
 	}
 }
-
-

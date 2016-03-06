@@ -2,8 +2,25 @@
 #include <windows.h> // Windows窗口程序编程，需要引用头文件 Windows.h
 #include "snake.h"
 
-// 画图时使用的表示蛇和食物的圆形的直径。
-#define CELL_PIXEL 20
+// 画图时使用的表示蛇和食物的圆形的直径像素点个数。
+#define CELL_PIXEL			20
+
+// 用来绘图的颜色
+#define COLOR_SNAKE			RGB(193, 205, 205)
+#define COLOR_FOOD			RGB(153, 255, 51)
+#define COLOR_BOUNDARY		RGB(139, 134, 130)
+#define COLOR_TEXT			RGB(173,216,230)
+
+// 游戏的参数的设置 
+#define INIT_TIMER_ELAPSE	300	// 初始的时钟周期，确定游戏初始速度
+#define	ONE_LEVELS_SCORES	5	// 每升级一次需要的计分
+#define INIT_SNAKE_LEN		5	// 蛇的长度
+#define SPEEDUP_RATIO		0.8 // 升级以后时间周期（确定游戏速度）提高的比例。
+#define MAX_X		18	// 游戏界面大小
+#define MAX_Y		20	// 游戏界面大小
+#define INIT_X		3	// 蛇的初始位置
+#define INIT_Y		3	// 蛇的初始位置
+#define INIT_DIR	SNAKE_LEFT	// 蛇的初始方向
 
 /********************************************************************************
 * ##########关于Windows数据类型##########
@@ -233,10 +250,10 @@ void GamePaint(HWND hwnd)
 	SelectObject(hdcmem, hbmMem);
 
 	// 创建需要用到的PEN和BRUSH
-	hbrushFood = CreateSolidBrush(RGB(152, 251, 152)); // RGB颜色，实心BRUSH
+	hbrushFood = CreateSolidBrush(COLOR_FOOD); // RGB颜色，实心BRUSH
 	hpen = CreatePen(PS_NULL, 0, RGB(0, 0, 0));  // PEN， PS_NULL表示不可见
-	hBrushSnake = CreateSolidBrush(RGB(193, 205, 205));
-	hPenBoundary = CreatePen(0, 3, RGB(139, 134, 130));
+	hBrushSnake = CreateSolidBrush(COLOR_SNAKE);
+	hPenBoundary = CreatePen(0, 3, COLOR_BOUNDARY);
 
 
 	/*******************************************************************************
@@ -311,7 +328,9 @@ void GamePaint(HWND hwnd)
 	{
 		CHAR szSourceInfo[1024];
 		wsprintf(szSourceInfo, "Sorce %d level %d", GetScore(), GetLevel());
-		// 如果成功，就输出字符串。
+		// 设置输出颜色
+		SetTextColor(hdcmem, COLOR_TEXT);
+		// 输出字符串。
 		TextOut(hdcmem, rectBoundary.left + 3, rectBoundary.bottom + 3,
 			szSourceInfo, lstrlen(szSourceInfo));
 		// 输出完成，将原来的字体对象放回DC中
@@ -324,7 +343,7 @@ void GamePaint(HWND hwnd)
 		hdcmem, 0, 0, SRCCOPY);
 
 	/*******************************************************************************
-	* #############  回复和释放资源  ################
+	* #############  回收和释放资源  ################
 	*
 	*******************************************************************************/
 	// 回收资源
@@ -442,7 +461,14 @@ LONG APIENTRY MainWndProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		CreateGame(hwnd, 200, 5, 0.7, 20, 20, 5, 5, 3, SNAKE_RIGHT);
+		CreateGame(hwnd, 
+			INIT_TIMER_ELAPSE,
+			ONE_LEVELS_SCORES,
+			SPEEDUP_RATIO, 
+			MAX_X, MAX_Y,
+			INIT_X, INIT_Y,
+			INIT_SNAKE_LEN,
+			INIT_DIR);
 		ReSizeGameWnd(hwnd);
 		break;
 

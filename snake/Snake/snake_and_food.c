@@ -1,7 +1,8 @@
 
-// 引用的头文件
+/************** 头文件 ****************/
 #include "snake.h"
 
+/************* 全局变量 ****************/
 // 食物
 GAME_COORD food;
 // 蛇，链表
@@ -11,10 +12,13 @@ dirction snake_dir;
 // 游戏边界
 GAME_COORD boundary;
 
-// 内部函数申明
+/*********** 内部函数申明 **************/
+/// 判断两个坐标是否相等。
 int CoordEqual(PGAME_COORD one, PGAME_COORD two);
+/// 判断蛇是否已死
 int IsSnakeDead();
 
+/**************函数定义****************/
 
 // 获得食物的坐标。
 PGAME_COORD GetFood()
@@ -185,8 +189,6 @@ int SnakeGorwup()
 }
 
 
-
-
 // 创建蛇
 void CreateSnake(dirction dir, int head_x, int head_y, int init_len)
 {
@@ -245,6 +247,7 @@ int IsSnakeDead()
 	}
 	return SNAKE_MOVED;
 }
+
 
 // 销毁蛇
 void DistroySnake()

@@ -1,8 +1,15 @@
+
+/************** 头文件 ****************/
 #include <Windows.h>
 #include "snake.h"
 
+/************** 宏定义 ****************/
 // 计时器ID。
 #define TIMER_ID 12340
+// 判断游戏是否达到升级条件
+#define IS_SPEEDUP(s) (s % dwOneLevelScores) == 0
+
+/************** 全局变量 ****************/
 // 计时器到时间隔
 DWORD dwTimerElapse;
 // 每提高一级，计时器时钟周期缩短的比例。
@@ -15,8 +22,8 @@ int score = 0;
 // 保存级别，初始为0
 int level = 0;
 
-#define IS_SPEEDUP(s) (s % dwOneLevelScores) == 0
 
+/************** 函数定义 ****************/
 // 返回积分
 int GetScore(){return score;}
 
@@ -33,9 +40,9 @@ BOOL SpeedUp(HWND hwnd)
 	return TRUE;
 }
 
+
 // 游戏控制的一个主要流程。
 // 当计时器发生时进行的处理逻辑。
-
 void OnTimer(HWND hwnd)
 {
 	// 计时器到时以后，蛇移动一步。
@@ -90,6 +97,8 @@ void OnTimer(HWND hwnd)
 	return;
 
 }
+
+
 // 当用于操作时进行的逻辑处理。
 // 本游戏只使用到了键盘上下左右键控制。
 void OnKeyDown(DWORD vk)
