@@ -5,11 +5,11 @@
 /************* 全局变量 ****************/
 // 食物
 GAME_COORD food;
-// 蛇，链表
+// 蛇（链表）
 PLIST snake_list;
 // 蛇移动方向
 dirction snake_dir;
-// 游戏边界
+// 游戏边界（这是右下，左上为0,0）
 GAME_COORD boundary;
 
 /*********** 内部函数申明 **************/
@@ -35,10 +35,11 @@ int CreateFood()
 
 new_food:
 
+	// 随机生成食物的坐标。
 	food.x = rand() % boundary.x;
 	food.y = rand() % boundary.y;
 
-	// 判断是否和蛇重叠了。
+	// 判断是否和蛇重叠了，否则重新生成食物坐标，知道不重叠。
 
 	for (i = 0; i < size; i++)
 	{
@@ -58,13 +59,14 @@ void SetBoundary(int x, int y)
 	boundary.x = x;
 	boundary.y = y;
 }
+
 // 获得边界坐标
 PGAME_COORD GetBoundary()
 {
 	return &boundary;
 }
 
-// 判断两个坐标 GAME_COORD 是否重合的函数
+// 判断两个坐标 GAME_COORD 是否重合
 int CoordEqual(PGAME_COORD one, PGAME_COORD two)
 {
 	if (one->x == two->x && one->y == two->y)
@@ -148,7 +150,7 @@ int SnakeGorwup()
 		return SNAKE_ERROR;
 
 	pNewTail = (PGAME_COORD)malloc(sizeof(GAME_COORD));
-	if (size == 1) // 只有一个节点，按照当前方向生长。
+	if (size == 1) // 只有一个节点，按照当前的移动方向生长。
 	{
 		
 		pTail = (PGAME_COORD)GetSnakeTail();
@@ -183,6 +185,7 @@ int SnakeGorwup()
 
 	}
 
+	// 新节点放入到蛇尾的位置
 	ListPushBack(snake_list, pNewTail);
 	return SNAKE_GROWUP;
 
@@ -249,7 +252,7 @@ int IsSnakeDead()
 }
 
 
-// 销毁蛇
+// 销毁蛇，释放内存资源。
 void DistroySnake()
 {
 	ListDistoryAndFree(snake_list);
@@ -257,24 +260,21 @@ void DistroySnake()
 }
 
 
-// 用来将蛇移动一步，
-// 移动以后
-// 如果吃到了食物，则生长。
+// 用来移动一步，
+// 移动以后，如果吃到了食物，则生长。
 // 如果碰到了墙或者自己，则死亡，并返回是否死亡的状态。
 int SnakeMove()
 {
-	// 完成移动的动作
+	// 头和尾的坐标
 	PGAME_COORD posHead;
-
 	PGAME_COORD posTail;
-	//int i;
-	//int size = ListSize(snake_list);
 
-	// 把蛇尾按照蛇的当前方向放置到蛇头。
+
+	// 把尾从链表中取出，按照当前方向放置到头的位置。
 	posHead = (PGAME_COORD)ListGetAt(snake_list, 0);
 	posTail = (PGAME_COORD)ListPopBack(snake_list);
 
-	// 根据当前蛇的方向来判断向那边移动
+	// 根据当前方向来设定新的头坐标。
 	switch (snake_dir)
 	{
 	case SNAKE_UP:
@@ -302,5 +302,6 @@ int SnakeMove()
 		return SNAKE_EATEN_FOOD;
 	}
 
+	// 如果没有吃到食物判断是否撞到障碍，然后返回状态。
 	return IsSnakeDead();
 }

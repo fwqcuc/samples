@@ -67,22 +67,21 @@ void OnTimer(HWND hwnd)
 		switch (SnakeGorwup())
 		{
 			// 玩家赢了，停止计时器。
-		case SNAKE_COMPLETE:
-			
+		case SNAKE_COMPLETE:		
 			KillTimer(hwnd, TIMER_ID);
 			// 通知玩家，退出进程，结束游戏。
 			MessageBox(0, "You Win!", "You Win", 0);
 			ExitProcess(0);
 			break;
-			// 发生错误。
+			// 发生错误，停止计时器，并退出。
 		case SNAKE_ERROR:
 			KillTimer(hwnd, TIMER_ID);
 			MessageBox(hwnd, "Error!!", "Error!1", MB_OK);
 			ExitProcess(0);
 			break;
-			// 没有介绍也没有错误
+			// 没有结束，也没有错误，正常吃到食物。
 		case SNAKE_GROWUP:
-			// 判断是否累计到了需要 升级的是时候
+			// 判断计分，是否升级。
 			if (IS_SPEEDUP(score))
 			{
 				level++;
@@ -134,7 +133,7 @@ void CreateGame(HWND hwnd, // 主窗口句柄
 	dirction init_dir)
 {
 	// 设置随机数种子
-	// 食物的位置是随机的。
+	// 需要使用随机数生成食物的位置等。
 	FILETIME ft;
 	GetSystemTimeAsFileTime(&ft);
 	srand(ft.dwLowDateTime);
