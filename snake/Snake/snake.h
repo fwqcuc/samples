@@ -29,6 +29,7 @@ typedef struct _GAME_COORD
 // 函数声明
 
 /// snake_and_food.c中的接口函数
+
 void SetBoundary(int x, int y);
 PGAME_COORD GetBoundary();
 
@@ -48,6 +49,7 @@ PGAME_COORD GetSnakeAt(int n);
 void DistroySnake();
 
 /// game_opration.c 中的接口函数
+
 int GetScore();
 int GetLevel();
 void CreateGame(HWND hwnd,

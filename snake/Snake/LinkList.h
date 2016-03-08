@@ -11,13 +11,13 @@ ListPopFront		- 删除链表头部节点。
 ListPopBack			- 删除链表尾部节点。
 ListGetFront		- 获得第一个节点
 ListGetBack			- 获得最后一个节点。
-ListGetNodeAt		- 根据序号获得节点。
-ListDeleteNodeAt	- 根据序号删除节点。
-ListDestroy			- 删除整个链表。
-ListDestroyAndFree	- 删除整个链表，并释放数据。
+ListGetAt		- 根据序号获得节点。
+ListDeleteAt	- 根据序号删除节点。
 ListClear			- 删除链表中的所有节点。
 ListClearAndFree	- 清除链表中的所有节点，并释放数据。
-ListGetSize			- 获得当前链表大小（节点数量）。
+ListDestroy			- 删除整个链表。
+ListDestroyAndFree	- 删除整个链表，并链表中的全部释放。
+ListSize			- 获得当前链表大小（节点数量）。
 
 
 ************************************************************************/
@@ -38,19 +38,41 @@ typedef struct _LIST
 }LIST, *PLIST;
 
 
-
+/***  创建一个新的链表  ***/
 PLIST ListCreate(void* list_data);
-void NodeDistory(PNODE);
-void ListPushBack(PLIST list, void* data);
-void ListPushFront(PLIST list, void* data);
-void* ListPopBack(PLIST list);
-void* ListPopFront(PLIST list);
+
+/***  插入节点到链表   ***/
 int ListInsertAt(PLIST list, unsigned int n, void* data);
-void* ListDeleteAt(PLIST list, int n);
-void ListClearAndFree(PLIST list);
-void ListDistoryAndFree(PLIST list);
-void ListDistory(PLIST list);
-int ListSize(PLIST list);
+
+/***  在链表头部插入节点   ***/
+void ListPushFront(PLIST list, void* data);
+
+/***  在链表尾部插入节点   ***/
+void ListPushBack(PLIST list, void* data);
+
+/***  删除链表头部节点   ***/
+void* ListPopFront(PLIST list);
+
+/***  删除链表尾部节点   ***/
+void* ListPopBack(PLIST list);
+
+/***  根据序号获得节点   ***/
 void* ListGetAt(PLIST list, unsigned int n);
+
+/***  根据序号删除节点   ***/
+void* ListDeleteAt(PLIST list, int n);
+
+/***  删除链表中的所有节点   ***/
+void ListClearAndFree(PLIST list);
+
+/***  删除整个链表   ***/
+void ListDistory(PLIST list);
+
+/***  删除整个链表，并链表中的全部释放   ***/
+void ListDistoryAndFree(PLIST list);
+
+/***  获得当前链表大小（节点数量）   ***/
+int ListSize(PLIST list);
+
 
 #endif
