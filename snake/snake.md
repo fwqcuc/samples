@@ -103,6 +103,12 @@ typedef enum _dirction
 ```
 
 [关于typedef]
+这是一个C语言的关键字，功能是将一个已有的数据类型**定义为**，或者理解为**重命名**为一个新的数据类型。
+上面是将枚举类型[enum _dirction]和结构体类型[struct _GAME_COORD]，重命名为了一个比较方便记忆和输入的名字。以后的代码中就使用新的名称。
+例如一个更简单的情况：
+```C
+typedef unsigned long       DWORD;
+```
 
 这些数据的类型都定义完成了，然后定义变量。
 
@@ -328,6 +334,43 @@ void CreateGame(HWND hwnd,
 现在我们只需要知道，在我们这个程序中，程序是从WinMain函数开始执行的。
 
 ** 关于Windows数据类型。
+
+前面介绍了C语言关键字 typedef，Windows的接口函数中，使用了大量特有的，通过这种方式定义的类型。
+```CPP
+/********************************************************************************
+* ##########关于Windows数据类型##########
+*
+* Windows在C语言的基础上定义了很多Windows特有的类型。都是通过C语言关键字typedef定义的。
+* Windows类型都是全大写。
+*
+* DWORD LPSTR WPARAM LPARAM HWND等
+* 其中，以'H'大头的数据类型都是句柄
+*
+*******************************************************************************/
+```
+例如Windows的头文件中有这样的内容：
+
+```CPP
+typedef unsigned long       DWORD;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+```
+
+```CPP
+typedef struct _SYSTEMTIME {
+    WORD wYear;
+    WORD wMonth;
+    WORD wDayOfWeek;
+    WORD wDay;
+    WORD wHour;
+    WORD wMinute;
+    WORD wSecond;
+    WORD wMilliseconds;
+} SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
+
+```
+
 
 ** 关于API函数。
 
