@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shellcode", "shellcode\shel
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "overflow", "overflow\overflow.vcxproj", "{DC4A6019-61BF-4D96-B997-4460ACF10D07}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple-overflow", "simple-overflow\simple-overflow.vcxproj", "{90D83FC9-AFB6-436E-97C3-424DB6615F7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{DC4A6019-61BF-4D96-B997-4460ACF10D07}.Debug|Win32.Build.0 = Debug|Win32
 		{DC4A6019-61BF-4D96-B997-4460ACF10D07}.Release|Win32.ActiveCfg = Release|Win32
 		{DC4A6019-61BF-4D96-B997-4460ACF10D07}.Release|Win32.Build.0 = Release|Win32
+		{90D83FC9-AFB6-436E-97C3-424DB6615F7D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{90D83FC9-AFB6-436E-97C3-424DB6615F7D}.Debug|Win32.Build.0 = Debug|Win32
+		{90D83FC9-AFB6-436E-97C3-424DB6615F7D}.Release|Win32.ActiveCfg = Release|Win32
+		{90D83FC9-AFB6-436E-97C3-424DB6615F7D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
