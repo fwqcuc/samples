@@ -30,23 +30,52 @@ typedef struct _GAME_COORD
 
 /// snake_and_food.c中的接口函数
 
+// 设置边界坐标
 void SetBoundary(int x, int y);
+
+// 获得边界坐标
 PGAME_COORD GetBoundary();
 
+// 生成新的食物。
 int CreateFood();
+
+// 获得食物的坐标。
 PGAME_COORD GetFood();
 
+// 创建蛇
+void CreateSnake(dirction dir, int head_x, int head_y, int init_len);
+
+// 销毁蛇，释放内存资源。
+void DistroySnake();
+
+// 用来移动一步，
+// 移动以后，如果吃到了食物，则生长。
+// 如果碰到了墙或者自己，则死亡，并返回是否死亡的状态。
+int SnakeMove();
+
+// 蛇生长
+int SnakeGorwup();
+
+// 获得蛇的长度
+int GetSnakeSize();
+
+// 获得蛇的第一个节点的坐标
+PGAME_COORD GetSnakeHead();
+
+// 获得蛇的最后一个节点的坐标
+PGAME_COORD GetSnakeTail();
+
+// 按照序号获得蛇的节点的坐标，不能超过蛇的长度，否则返回NULL
+PGAME_COORD GetSnakeAt(int n);
+
+// 改变蛇移动的方向
 void SetDirction(dirction dir);
+
+// 获得当前蛇的方向
 dirction GetDirction();
 
-void CreateSnake(dirction dir, int head_x, int head_y, int init_len);
-int SnakeGorwup();
-int SnakeMove();
-int GetSnakeSize();
-PGAME_COORD GetSnakeHead();
-PGAME_COORD GetSnakeTail();
-PGAME_COORD GetSnakeAt(int n);
-void DistroySnake();
+
+
 
 /// game_opration.c 中的接口函数
 

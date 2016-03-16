@@ -247,8 +247,93 @@ int ListSize(PLIST list);
 3. 启动和流程
 
 * 数据结构的初始化过程
+
+有了上面的那些数据和接口函数作为基础游戏的初始化过程比较容易的完成。
+
+```CPP
+// 游戏的初始化，
+// 创建游戏的内部数据结构和系统对象。
+void CreateGame(HWND hwnd, 
+	DWORD dwInitTimerElapse, 
+	unsigned int one_level_scores,
+	DOUBLE level_speedup_ratio,
+	int boundary_x, int boundary_y,
+	int init_x, int init_y, 
+	int init_len,
+	dirction init_dir)
+{
+	// 设置随机数种子
+	// 需要使用随机数生成食物的位置等。
+	FILETIME ft;
+	GetSystemTimeAsFileTime(&ft);
+	srand(ft.dwLowDateTime);
+
+	dbLevelSpeedupRatio = level_speedup_ratio;
+	dwTimerElapse = dwInitTimerElapse;
+	dwOneLevelScores = one_level_scores;
+
+	// 设置游戏的边界
+	SetBoundary(boundary_x, boundary_y);
+
+	// 创建表示贪吃蛇的数据结构
+	CreateSnake(init_dir, init_x, init_y, init_len);
+
+	// 创建表示食物的数据结构
+	CreateFood();
+
+	// 创建一个计时器
+	// 每经过 dwTimerElapse 毫秒，hwnd窗口（主窗口）就会收到一个WM_TIMER消息。
+	// 计时器是驱动本游戏进行的主要时间线。
+	// dwTimerElapse变量影响游戏进行的快慢变化。
+	SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
+
+}
+```
+
+然后在程序以后，合适的地方，调用CreateGame这个函数：
+
+```CPP
+		CreateGame(hwnd, 
+			INIT_TIMER_ELAPSE,
+			ONE_LEVELS_SCORES,
+			SPEEDUP_RATIO, 
+			MAX_X, MAX_Y,
+			INIT_X, INIT_Y,
+			INIT_SNAKE_LEN,
+			INIT_DIR);
+
+```
+调用CreateGame时，输入的参数都是以宏的方式定义的常量。
+
+```CPP
+// 游戏的参数的设置 
+#define INIT_TIMER_ELAPSE	300	// 初始的时钟周期，确定游戏初始速度
+#define	ONE_LEVELS_SCORES	5	// 每升级一次需要的计分
+#define INIT_SNAKE_LEN		5	// 蛇的长度
+#define SPEEDUP_RATIO		0.8 // 升级以后时间周期（确定游戏速度）提高的比例。
+#define MAX_X		18	// 游戏界面大小
+#define MAX_Y		20	// 游戏界面大小
+#define INIT_X		3	// 蛇的初始位置
+#define INIT_Y		3	// 蛇的初始位置
+#define INIT_DIR	SNAKE_LEFT	// 蛇的初始方向
+```
+
+这么做的原因，是便于代码的阅读。同时如果以后想修改一下这些参数，让游戏变得快一些，界面大一些或者小一些，可以非常便捷。
+这些基本就是程序的主要参数了。
+
 * 入口函数
-* 
+
+一个特别的地方，Windows系统中，图形用户界面的程序的入口函数的名称是WinMain，而不是标准c的main函数了。入口函数叫什么名字，只是约定而已。这个没有什么奇怪的，我们以后还会在不同的地方见到不同名称的入口函数。
+
+现在我们只需要知道，在我们这个程序中，程序是从WinMain函数开始执行的。
+
+** 关于Windows数据类型。
+
+** 关于API函数。
+
+** 关于消息机制。
+
+
 
 4. 显示出来
 

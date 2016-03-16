@@ -20,13 +20,29 @@ int IsSnakeDead();
 
 /**************函数定义****************/
 
-// 获得食物的坐标。
-PGAME_COORD GetFood()
+
+// 判断两个坐标 GAME_COORD 是否重合
+int CoordEqual(PGAME_COORD one, PGAME_COORD two)
 {
-	return &food;
+	if (one->x == two->x && one->y == two->y)
+		return 1;
+	return 0;
 }
 
-// 创建一个食物
+// 设置边界坐标
+void SetBoundary(int x, int y)
+{
+	boundary.x = x;
+	boundary.y = y;
+}
+
+// 获得边界坐标
+PGAME_COORD GetBoundary()
+{
+	return &boundary;
+}
+
+// 生成新的食物。
 int CreateFood()
 {
 	PGAME_COORD posbody;
@@ -53,85 +69,120 @@ new_food:
 
 }
 
-// 设置边界坐标
-void SetBoundary(int x, int y)
+// 获得食物的坐标。
+PGAME_COORD GetFood()
 {
-	boundary.x = x;
-	boundary.y = y;
+	return &food;
 }
 
-// 获得边界坐标
-PGAME_COORD GetBoundary()
+// 创建蛇
+void CreateSnake(dirction dir, int head_x, int head_y, int init_len)
 {
-	return &boundary;
+	PGAME_COORD p;
+
+	SetDirction(dir);
+
+	snake_list = ListCreate(NULL);
+
+	p = (PGAME_COORD)malloc(sizeof(GAME_COORD));
+	// 蛇头部的初始位置；
+	p->x = head_x;
+	p->y = head_y;
+	ListPushFront(snake_list, p);
+
+	for (int i = 1; i < init_len; i++)
+	{
+		//p = (PGAME_COORD)malloc(sizeof(GAME_COORD));
+		SnakeGorwup();
+	}
+	return;
 }
 
-// 判断两个坐标 GAME_COORD 是否重合
-int CoordEqual(PGAME_COORD one, PGAME_COORD two)
+// 判断蛇是否死了。
+// 返回0 蛇没有死 else 蛇死了。
+int IsSnakeDead()
 {
-	if (one->x == two->x && one->y == two->y)
-		return 1;
-	return 0;
+	PGAME_COORD posBody;
+	PGAME_COORD posHead;
+
+	int i;
+	int size = ListSize(snake_list);
+
+
+	// 判断是否死亡
+	/// 判断是否碰到墙
+	posHead = (PGAME_COORD)ListGetAt(snake_list, 0);
+
+	if (posHead->x < 0 || posHead->x > boundary.x ||
+		posHead->y < 0 || posHead->y > boundary.y)
+	{
+		return SNAKE_DEAD;
+	}
+	/// 判断是否碰到自己
+	//// 从第二个节点开始，逐一和头节点比较。
+	size = ListSize(snake_list);
+
+	for (i = 1; i < size; i++)
+	{
+		posBody = (PGAME_COORD)ListGetAt(snake_list, i);
+		if (CoordEqual(posHead, posBody))
+		{
+			return SNAKE_DEAD;
+		}
+	}
+	return SNAKE_MOVED;
 }
 
-// 获得当前蛇的方向
-dirction GetDirction()
+// 销毁蛇，释放内存资源。
+void DistroySnake()
 {
-	return snake_dir;
+	ListDistoryAndFree(snake_list);
+	return;
 }
 
-// 获得蛇的长度
-int GetSnakeSize()
+// 用来移动一步，
+// 移动以后，如果吃到了食物，则生长。
+// 如果碰到了墙或者自己，则死亡，并返回是否死亡的状态。
+int SnakeMove()
 {
-	return ListSize(snake_list);
-}
+	// 头和尾的坐标
+	PGAME_COORD posHead;
+	PGAME_COORD posTail;
 
-// 获得蛇的第一个节点的坐标
-PGAME_COORD GetSnakeHead()
-{
-	return (PGAME_COORD)ListGetAt(snake_list, 0);
-}
+	// 把尾从链表中取出，按照当前方向放置到头的位置。
+	posHead = (PGAME_COORD)ListGetAt(snake_list, 0);
+	posTail = (PGAME_COORD)ListPopBack(snake_list);
 
-// 获得蛇的最后一个节点的坐标
-PGAME_COORD GetSnakeTail()
-{
-	return (PGAME_COORD)ListGetAt(snake_list, GetSnakeSize()-1);
-}
-
-// 按照序号获得蛇的节点的坐标，不能超过蛇的长度，否则返回NULL
-PGAME_COORD GetSnakeAt(int n)
-{
-	if (n < ListSize(snake_list))
-		return (PGAME_COORD)ListGetAt(snake_list, n);
-	else
-		return NULL;
-
-}
-
-// 改变方向
-void SetDirction(dirction dir)
-{
-
+	// 根据当前方向来设定新的头坐标。
 	switch (snake_dir)
 	{
 	case SNAKE_UP:
-		if (dir == SNAKE_DOWN)
-			return;
+		posTail->y = posHead->y - 1;
+		posTail->x = posHead->x;
 		break;
 	case SNAKE_DOWN:
-		if (dir == SNAKE_UP)
-			return;
+		posTail->y = posHead->y + 1;
+		posTail->x = posHead->x;
 		break;
 	case SNAKE_LEFT:
-		if (dir == SNAKE_RIGHT)
-			return;
+		posTail->x = posHead->x - 1;
+		posTail->y = posHead->y;
 		break;
 	case SNAKE_RIGHT:
-		if (dir == SNAKE_LEFT)
-			return;
+		posTail->x = posHead->x + 1;
+		posTail->y = posHead->y;
 		break;
 	}
-	snake_dir = dir;
+	ListPushFront(snake_list, posTail);
+
+	// 判断是否吃到了食物
+	if (CoordEqual(posHead, &food))
+	{
+		return SNAKE_EATEN_FOOD;
+	}
+
+	// 如果没有吃到食物判断是否撞到障碍，然后返回状态。
+	return IsSnakeDead();
 }
 
 // 蛇生长
@@ -191,117 +242,63 @@ int SnakeGorwup()
 
 }
 
-
-// 创建蛇
-void CreateSnake(dirction dir, int head_x, int head_y, int init_len)
+// 获得蛇的长度
+int GetSnakeSize()
 {
-	PGAME_COORD p;
-
-	SetDirction(dir);
-	
-	snake_list = ListCreate(NULL);
-
-	p = (PGAME_COORD)malloc(sizeof(GAME_COORD));
-	// 蛇头部的初始位置；
-	p->x = head_x;
-	p->y = head_y;
-	ListPushFront(snake_list, p);
-
-	for (int i = 1; i < init_len; i++)
-	{
-		//p = (PGAME_COORD)malloc(sizeof(GAME_COORD));
-		SnakeGorwup();
-	}
-	return;
+	return ListSize(snake_list);
 }
 
-
-// 判断蛇是否死了。
-// 返回0 蛇没有死 else 蛇死了。
-int IsSnakeDead()
+// 获得蛇的第一个节点的坐标
+PGAME_COORD GetSnakeHead()
 {
-	PGAME_COORD posBody;
-	PGAME_COORD posHead;
-
-	int i;
-	int size = ListSize(snake_list);
-
-
-	// 判断是否死亡
-	/// 判断是否碰到墙
-	posHead = (PGAME_COORD)ListGetAt(snake_list, 0);
-
-	if (posHead->x < 0 || posHead->x > boundary.x ||
-		posHead->y < 0 || posHead->y > boundary.y)
-	{
-		return SNAKE_DEAD;
-	}
-	/// 判断是否碰到自己
-	//// 从第二个节点开始，逐一和头节点比较。
-	size = ListSize(snake_list);
-
-	for (i = 1; i < size; i++)
-	{
-		posBody = (PGAME_COORD)ListGetAt(snake_list, i);
-		if (CoordEqual(posHead, posBody))
-		{
-			return SNAKE_DEAD;
-		}
-	}
-	return SNAKE_MOVED;
+	return (PGAME_COORD)ListGetAt(snake_list, 0);
 }
 
-
-// 销毁蛇，释放内存资源。
-void DistroySnake()
+// 获得蛇的最后一个节点的坐标
+PGAME_COORD GetSnakeTail()
 {
-	ListDistoryAndFree(snake_list);
-	return;
+	return (PGAME_COORD)ListGetAt(snake_list, GetSnakeSize() - 1);
 }
 
-
-// 用来移动一步，
-// 移动以后，如果吃到了食物，则生长。
-// 如果碰到了墙或者自己，则死亡，并返回是否死亡的状态。
-int SnakeMove()
+// 按照序号获得蛇的节点的坐标，不能超过蛇的长度，否则返回NULL
+PGAME_COORD GetSnakeAt(int n)
 {
-	// 头和尾的坐标
-	PGAME_COORD posHead;
-	PGAME_COORD posTail;
+	if (n < ListSize(snake_list))
+		return (PGAME_COORD)ListGetAt(snake_list, n);
+	else
+		return NULL;
 
+}
 
-	// 把尾从链表中取出，按照当前方向放置到头的位置。
-	posHead = (PGAME_COORD)ListGetAt(snake_list, 0);
-	posTail = (PGAME_COORD)ListPopBack(snake_list);
+// 改变蛇移动的方向
+void SetDirction(dirction dir)
+{
 
-	// 根据当前方向来设定新的头坐标。
 	switch (snake_dir)
 	{
 	case SNAKE_UP:
-		posTail->y = posHead->y - 1;
-		posTail->x = posHead->x;
+		if (dir == SNAKE_DOWN)
+			return;
 		break;
 	case SNAKE_DOWN:
-		posTail->y = posHead->y + 1;
-		posTail->x = posHead->x;
+		if (dir == SNAKE_UP)
+			return;
 		break;
 	case SNAKE_LEFT:
-		posTail->x = posHead->x - 1;
-		posTail->y = posHead->y;
+		if (dir == SNAKE_RIGHT)
+			return;
 		break;
 	case SNAKE_RIGHT:
-		posTail->x = posHead->x + 1;
-		posTail->y = posHead->y;
+		if (dir == SNAKE_LEFT)
+			return;
 		break;
 	}
-	ListPushFront(snake_list, posTail);
+	snake_dir = dir;
+}
 
-	// 判断是否吃到了食物
-	if (CoordEqual(posHead, &food))
-	{
-		return SNAKE_EATEN_FOOD;
-	}
 
-	// 如果没有吃到食物判断是否撞到障碍，然后返回状态。
-	return IsSnakeDead();
+// 获得当前蛇的方向
+dirction GetDirction()
+{
+	return snake_dir;
 }
