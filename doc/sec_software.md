@@ -4,7 +4,8 @@
 * HeapAlloc HeapFree函数
 * FindFirstFile FindNextFile
 * ToolHelper，列举线程、进程。
-* 编写Dll、导出指定的函数，并在Exe中调用导出函数。
+* 动态链接原理、编写Dll、导出指定的函数，并在Exe中调用导出函数。
+* LoadLibrary、GetProcAddress;
 * dupmbin PE文件结构。
 * VirtualAlloc等虚拟内存管理相关函数，尤其是VitrulProtect。
 * ImageHelper
@@ -17,6 +18,7 @@
 * Copy On Write
 * 通过PEB \ TEB 获取API函数在内存中的地址。
 * 完成一次实战的漏洞的利用。（TODO哪个漏洞？)
+* 使用winhex手工恢复删除文件。
 * 编写sys，验证Copy On Write。
 * 使用DKOM方式隐藏进程和文件。
 * 使用NtAPI hook方式隐藏文件和进程。

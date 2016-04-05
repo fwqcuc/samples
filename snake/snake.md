@@ -389,6 +389,8 @@ typedef struct _SYSTEMTIME {
 * 初始化过程
 
 * 定时移动一步
+用到了操作系统的机制，计时器——Timer。
+
 
 * 键盘控制蛇的方向
 
