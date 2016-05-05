@@ -1,0 +1,15 @@
+#Ingore Trash of Visual Studio
+**/ipch
+**/.vs
+*.tlog
+*.log
+**/Debug
+**/Release
+*.db
+*.sdf
+
+#Includes
+!*.sln
+!*.c
+!*.cpp
+!*.vcxproj*
