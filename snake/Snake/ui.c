@@ -271,8 +271,8 @@ void GamePaint(HWND hwnd)
 	hOldBrush = (HBRUSH)SelectObject(hdcmem, hbrushFood);
 	hOldPen = (HPEN)SelectObject(hdcmem, hpen);
 
-
 	lpFood = GetFood();
+
 	// （椭）圆形，使用上面选择的PEN勾勒边框，BRUSH填充
 	Ellipse(hdcmem,
 		lpFood->x * CELL_PIXEL + rectBoundary.left,
@@ -410,23 +410,23 @@ void ReSizeGameWnd(HWND hwnd)
 * Windows窗口应用程序是一种消息驱动的程序框架。
 * Windows系统中一共有几百种消息，常用的有几十种，如：
 *
-* WM_CREATE 当窗口被创建是会收到此消息
-* WM_PAINT 当窗口应该绘制GDI图形是会收到此消息
-* WM_SIZE 当窗口大小变化后会
-* WM_MOVE 当窗口被移动后
-* WM_DESTROY 当点击窗口的关闭按钮后
-* WM_KEYDOWN 当键盘的键被按下以后
-* WM_KEYUP 当键盘的键弹起以后
-* WN_CHAR 当输入字符以后
-* WM_TIMER 当计时器到时以后
-* WM_LBUTTONDOWN WM_LBUTTONUP WM_RBUTTONDOWN WM_RBUTTONUP 分别为鼠标左右键按下和弹起
-* WM_LBUTTONDBLCLK 鼠标左键双击
-* WM_COMMAND 一般在窗口的菜单被点击后
-* WN_NOTIFY 一般在子窗口被进行了某项操作时，父窗口会收到此消息，在子窗口是控件的情况下常被使用
-* WM_SIZING 当窗口在大小变化的过程中
-* WM_MOVING 当窗口在移动过程中
-* WM_SETFOCUS 当窗口获得鼠标\键盘焦点
-* WM_KILLFOCUS 当窗口失去鼠标\键盘焦点
+* WM_CREATE		当窗口被创建是会收到此消息
+* WM_PAINT		当窗口应该绘制GDI图形是会收到此消息
+* WM_SIZE		当窗口大小变化后会
+* WM_MOVE		当窗口被移动后
+* WM_DESTROY		当点击窗口的关闭按钮后
+* WM_KEYDOWN		当键盘的键被按下以后
+* WM_KEYUP		当键盘的键弹起以后
+* WN_CHAR		当输入字符以后
+* WM_TIMER		当计时器到时以后
+* WM_LBUTTONDOWN WM_LBUTTONUP WM_RBUTTONDOWN WM_RBUTTONUP		分别为鼠标左右键按下和弹起
+* WM_LBUTTONDBLCLK		鼠标左键双击
+* WM_COMMAND		一般在窗口的菜单被点击后
+* WN_NOTIFY		一般在子窗口被进行了某项操作时，父窗口会收到此消息，在子窗口是控件的情况下常被使用
+* WM_SIZING		当窗口在大小变化的过程中
+* WM_MOVING		当窗口在移动过程中
+* WM_SETFOCUS	当窗口获得鼠标\键盘焦点
+* WM_KILLFOCUS	当窗口失去鼠标\键盘焦点
 *
 *******************************************************************************/
 
@@ -449,7 +449,7 @@ void ReSizeGameWnd(HWND hwnd)
 * 回调函数机制是“消息驱动型”程序的基本技术。
 *
 *******************************************************************************/
-LONG APIENTRY MainWndProc(
+LONG CALLBACK MainWndProc(
 	HWND hwnd, //
 	UINT msg, // 消息
 	WPARAM wParam, // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档

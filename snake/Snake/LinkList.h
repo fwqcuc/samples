@@ -4,20 +4,20 @@
 
 FUNCTIONS :
 ListCreate			- 创建一个新的链表。
-ListInsertAt		- 插入节点到链表。
+ListInsertAt			- 插入节点到链表。
 ListPushFront		- 在链表头部插入节点。
-ListPushBack		- 在链表尾部插入节点。
-ListPopFront		- 删除链表头部节点。
+ListPushBack			- 在链表尾部插入节点。
+ListPopFront			- 删除链表头部节点。
 ListPopBack			- 删除链表尾部节点。
-ListGetFront		- 获得第一个节点
+ListGetFront			- 获得第一个节点
 ListGetBack			- 获得最后一个节点。
-ListGetAt		- 根据序号获得节点。
-ListDeleteAt	- 根据序号删除节点。
+ListGetAt			- 根据序号获得节点。
+ListDeleteAt			- 根据序号删除节点。
 ListClear			- 删除链表中的所有节点。
-ListClearAndFree	- 清除链表中的所有节点，并释放数据。
+ListClearAndFree		- 清除链表中的所有节点，并释放数据。
 ListDestroy			- 删除整个链表。
 ListDestroyAndFree	- 删除整个链表，并链表中的全部释放。
-ListSize			- 获得当前链表大小（节点数量）。
+ListSize				- 获得当前链表大小（节点数量）。
 
 
 ************************************************************************/
@@ -33,8 +33,8 @@ typedef struct _NODE
 
 typedef struct _LIST
 {
- void* list_data;
- PNODE first;
+	void* list_data;
+	PNODE first;
 }LIST, *PLIST;
 
 
