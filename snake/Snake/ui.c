@@ -148,7 +148,7 @@ int WINAPI WinMain(
 		CW_USEDEFAULT,        // 窗口高度 default height 
 		(HWND)NULL,         // 父窗口句柄 no owner window 
 		(HMENU)NULL,        // 窗口菜单的句柄 use class menu 
-		hinstance,           // 应用程序示例句柄 handle to application instance 
+		hinstance,           // 应用程序实例句柄 handle to application instance 
 		(LPVOID)NULL);      // 指向附加数据的指针 no window-creation data 
 
 	if (!hwnd)
