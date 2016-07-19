@@ -112,6 +112,7 @@ PGAME_COORD GetFood()
 void CreateSnake(dirction dir, int head_x, int head_y, int init_len)
 {
 	PGAME_COORD p;
+	int i;
 
 	SetDirction(dir);
 
@@ -123,7 +124,7 @@ void CreateSnake(dirction dir, int head_x, int head_y, int init_len)
 	p->y = head_y;
 	ListPushFront(snake_list, p);
 
-	for (int i = 1; i < init_len; i++)
+	for (i = 1; i < init_len; i++)
 	{
 		//p = (PGAME_COORD)malloc(sizeof(GAME_COORD));
 		SnakeGorwup();
