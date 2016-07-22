@@ -69,6 +69,7 @@ LRESULT CALLBACK WindProcedure(HWND hWnd, UINT Msg,
 		}
 		break;
 	case WM_DESTROY:
+		DeleteObject(bmpExercising);
 		PostQuitMessage(WM_QUIT);
 		break;
 	case WM_PAINT:
@@ -85,7 +86,7 @@ LRESULT CALLBACK WindProcedure(HWND hWnd, UINT Msg,
 
 		// Restore the old bitmap
 		DeleteDC(MemDCExercising);
-		DeleteObject(bmpExercising);
+
 		EndPaint(hWnd, &Ps);
 		break;
 	default:
