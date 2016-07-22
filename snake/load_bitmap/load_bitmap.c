@@ -55,6 +55,7 @@ LRESULT CALLBACK WindProcedure(HWND hWnd, UINT Msg,
 {
 	HDC hDC, MemDCExercising;
 	PAINTSTRUCT Ps;
+	RECT rect;
 
 
 	switch (Msg)
@@ -82,7 +83,8 @@ LRESULT CALLBACK WindProcedure(HWND hWnd, UINT Msg,
 		SelectObject(MemDCExercising, bmpExercising);
 
 		// Copy the bits from the memory DC into the current dc
-		BitBlt(hDC, 10, 10, 450, 400, MemDCExercising, 0, 0, SRCCOPY);
+		GetClientRect(hWnd, &rect);
+		BitBlt(hDC, 0, 0, rect.right, rect.bottom, MemDCExercising, 0, 0, SRCCOPY);
 
 		// Restore the old bitmap
 		DeleteDC(MemDCExercising);
