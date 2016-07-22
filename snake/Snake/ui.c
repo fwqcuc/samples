@@ -55,8 +55,6 @@ LRESULT CALLBACK MainWndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL SpeedUp(HWND hwnd);
 
 
-
-
 /*******************************************************************************
 * ##########   入口函数WinMain    ##########
 *
@@ -111,19 +109,32 @@ int WINAPI WinMain(
 	// Fill in the window class structure with parameters 
 	// that describe the main window. 
 
-	wc.style = CS_HREDRAW | CS_VREDRAW;  // 窗口类的样式，这里设置的样式表示窗口在大小变化是需要重绘
-	wc.lpfnWndProc = MainWndProc;  // 一个函数指针，这个函数用来处理窗口消息。 详见 MainWndProc函数的注释。
-	wc.cbClsExtra = 0;  // no extra class memory 
-	wc.cbWndExtra = 0;  // no extra window memory 
-	wc.hInstance = hinstance;  // handle to instance 
-	wc.hIcon = LoadIcon(NULL,  // hIcon成员用来指定窗口的图标
-		IDI_APPLICATION);   // 这里直接使用LoadIcon函数加载了一个系统预定义的图标，开发人员可也可以自己创建图标。
-	wc.hCursor = LoadCursor(NULL, // Cursor是鼠标光标，这里是设定了鼠标光标的样式。
-		IDC_HAND);   // 直接使用LoadCursor API函数载入了一个系统预定义的光标样式，还有IDC_CROSS,IDC_HAND等样式 
-	wc.hbrBackground = (HBRUSH)GetStockObject( // GetStockObject的功能是加载一个系统预定义（在栈中）的GDI对象，
-		WHITE_BRUSH);  // 这里加载的是一个白色的画刷，有关画刷和GDI对象，详见GDI说明。
-	wc.lpszMenuName = "MainMenu";  // 窗口的菜单的资源名。
-	wc.lpszClassName = "MainWClass"; // 给窗口类起一个名字，在创建窗口时需要这个名字。
+	// 窗口类的样式，这里设置的样式表示窗口在大小变化是需要重绘
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	// 一个函数指针，这个函数用来处理窗口消息。 详见 MainWndProc函数的注释。
+	wc.lpfnWndProc = MainWndProc;
+	// no extra class memory 
+	wc.cbClsExtra = 0;
+	// no extra window memory
+	wc.cbWndExtra = 0;
+	// handle to instance 
+	wc.hInstance = hinstance;
+	// hIcon成员用来指定窗口的图标
+	// 这里直接使用LoadIcon函数加载了一个系统预定义的图标，开发人员可也可以自己创建图标。
+	wc.hIcon = LoadIcon(NULL,
+		IDI_ERROR);
+	// Cursor是鼠标光标，这里是设定了鼠标光标的样式。
+	// 直接使用LoadCursor API函数载入了一个系统预定义的光标样式，还有IDC_CROSS,IDC_HAND等样式 
+	wc.hCursor = LoadCursor(NULL,
+		IDC_CROSS);
+	// GetStockObject的功能是加载一个系统预定义（在栈中）的GDI对象，
+	// 这里加载的是一个白色的画刷，有关画刷和GDI对象，详见GDI说明。
+	wc.hbrBackground = (HBRUSH)GetStockObject(
+		WHITE_BRUSH);
+	// 窗口的菜单的资源名。
+	wc.lpszMenuName = "MainMenu";
+	// 给窗口类起一个名字，在创建窗口时需要这个名字。
+	wc.lpszClassName = "MainWClass";
 
 	// Register the window class. 
 
@@ -139,17 +150,17 @@ int WINAPI WinMain(
 	// Create the main window. 
 
 	hwnd = CreateWindow(
-		"MainWClass",        // 窗口类名，必须是已经注册了的窗口类
-		"GDI-snake-Demo",    // title-bar string 
-		WS_OVERLAPPEDWINDOW, // 窗口的style，这个表示为top-level window 
-		CW_USEDEFAULT,        // 窗口水平位置default horizontal POINT 
-		CW_USEDEFAULT,        // 窗口垂直位置default vertical POINT 
-		CW_USEDEFAULT,        // 窗口宽度 default width 
-		CW_USEDEFAULT,        // 窗口高度 default height 
-		(HWND)NULL,         // 父窗口句柄 no owner window 
-		(HMENU)NULL,        // 窗口菜单的句柄 use class menu 
-		hinstance,           // 应用程序实例句柄 handle to application instance 
-		(LPVOID)NULL);      // 指向附加数据的指针 no window-creation data 
+		"MainWClass",			// 窗口类名，必须是已经注册了的窗口类
+		"我的蛇好美！！",		// title-bar string 
+		WS_OVERLAPPEDWINDOW,	// 窗口的style，这个表示为top-level window 
+		CW_USEDEFAULT,			// 窗口水平位置default horizontal POINT 
+		CW_USEDEFAULT,			// 窗口垂直位置default vertical POINT 
+		CW_USEDEFAULT,			// 窗口宽度 default width 
+		CW_USEDEFAULT,			// 窗口高度 default height 
+		(HWND)NULL,				// 父窗口句柄 no owner window 
+		(HMENU)NULL,			// 窗口菜单的句柄 use class menu 
+		hinstance,				// 应用程序实例句柄 handle to application instance 
+		(LPVOID)NULL);			// 指向附加数据的指针 no window-creation data 
 
 	if (!hwnd)
 	{
@@ -274,7 +285,7 @@ void GamePaint(HWND hwnd)
 	lpFood = GetFood();
 
 	// （椭）圆形，使用上面选择的PEN勾勒边框，BRUSH填充
-	Ellipse(hdcmem,
+	Rectangle(hdcmem,
 		lpFood->x * CELL_PIXEL + rectBoundary.left,
 		lpFood->y * CELL_PIXEL + rectBoundary.top,
 		(lpFood->x + 1)*CELL_PIXEL + rectBoundary.left,
@@ -292,7 +303,7 @@ void GamePaint(HWND hwnd)
 	for (i = 0; i < snake_size; i++)
 	{
 		pSnakeBody = (PGAME_COORD)GetSnakeAt(i);
-		Ellipse(hdcmem,
+		Rectangle(hdcmem,
 			pSnakeBody->x * CELL_PIXEL + rectBoundary.left,
 			pSnakeBody->y * CELL_PIXEL + rectBoundary.top,
 			(pSnakeBody->x + 1)*CELL_PIXEL + rectBoundary.left,
@@ -461,10 +472,10 @@ LONG CALLBACK MainWndProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		CreateGame(hwnd, 
+		CreateGame(hwnd,
 			INIT_TIMER_ELAPSE,
 			ONE_LEVELS_SCORES,
-			SPEEDUP_RATIO, 
+			SPEEDUP_RATIO,
 			MAX_X, MAX_Y,
 			INIT_X, INIT_Y,
 			INIT_SNAKE_LEN,
@@ -482,17 +493,22 @@ LONG CALLBACK MainWndProc(
 		break;
 
 	case WM_KEYDOWN:
-	
+
 		OnKeyDown(wParam);
 		GamePaint(hwnd);
 		break;
-	
-	case WM_TIMER:
-	
+
+	case WM_LBUTTONDOWN:
 		OnTimer(hwnd);
 		GamePaint(hwnd);
 		break;
-	
+
+	case WM_TIMER:
+
+		OnTimer(hwnd);
+		GamePaint(hwnd);
+		break;
+
 	case WM_DESTROY:
 		ExitProcess(0);
 		break;
