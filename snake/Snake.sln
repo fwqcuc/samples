@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Snake", "Snake\Snake.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "load_bitmap", "load_bitmap\load_bitmap.vcxproj", "{CB137A90-D4FE-49BE-9792-5F67EE4A9B68}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FighterFight", "FighterFight\FighterFight.vcxproj", "{63328099-93CC-4192-841E-AD8E074D60EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{CB137A90-D4FE-49BE-9792-5F67EE4A9B68}.Debug|Win32.Build.0 = Debug|Win32
 		{CB137A90-D4FE-49BE-9792-5F67EE4A9B68}.Release|Win32.ActiveCfg = Release|Win32
 		{CB137A90-D4FE-49BE-9792-5F67EE4A9B68}.Release|Win32.Build.0 = Release|Win32
+		{63328099-93CC-4192-841E-AD8E074D60EA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{63328099-93CC-4192-841E-AD8E074D60EA}.Debug|Win32.Build.0 = Debug|Win32
+		{63328099-93CC-4192-841E-AD8E074D60EA}.Release|Win32.ActiveCfg = Release|Win32
+		{63328099-93CC-4192-841E-AD8E074D60EA}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
