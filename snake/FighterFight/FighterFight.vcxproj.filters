@@ -18,5 +18,13 @@
     <ClCompile Include="ui.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="bullet_fighter.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bullet_fight.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
