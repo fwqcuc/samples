@@ -1,7 +1,20 @@
 #include <Windows.h>
+#include "bullet_fight.h"
 
 HINSTANCE hinst;
+HWND hwndFighter;
+
+LPBULLET lpbullet = NULL;
+DWORD dwTimerElapse = 1000;
+
+#define TIMER_ID 12340
 #define TRANS_BK_COLOR RGB(255,255,255)
+
+#define FIGHTER_HEIGHT	50
+#define FIGHTER_WIDTH	50
+
+// 飞机在方向键的作用下，每次移动的像素；
+#define FIGHTER_MOVE_STEP 5
 
 LONG CALLBACK MainWndProc(
 	HWND hwnd, //
@@ -65,7 +78,7 @@ BOOL RegisterFighterClass()
 
 BOOL CreateFighterWindow()
 {
-	HWND hwndFighter;
+
 	hwndFighter = CreateWindowEx(
 		WS_EX_LAYERED | WS_EX_TOPMOST,
 		"fighter_class",			// 窗口类名，必须是已经注册了的窗口类
@@ -117,7 +130,11 @@ LONG CALLBACK FighterWndProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		MoveWindow(hwnd, 100, 100, 100, 100, TRUE);
+
+		MoveWindow(
+			hwnd, 100, 100,
+			FIGHTER_WIDTH, FIGHTER_HEIGHT,
+			TRUE);
 		hbmpFighter = LoadImage(NULL, "fight.bmp",
 			IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		if (hbmpFighter == NULL)
@@ -338,6 +355,7 @@ LONG CALLBACK MainWndProc(
 	HDC hdc, hdcMem;
 	PAINTSTRUCT ps;
 	RECT rect;
+	LPRECT lprect;
 	// 注意，是switch-case, 每次这个函数被调用，只会落入到一个case中。
 	switch (msg)
 	{
@@ -378,6 +396,15 @@ LONG CALLBACK MainWndProc(
 			hdcMem, 
 			0, 0, 1920, 1080, 
 			SRCCOPY);
+		if (lpbullet != NULL)
+		{
+			SelectObject(hdcMem, GetStockObject(WHITE_BRUSH));
+			Ellipse(hdcMem,
+				GetBulletX(lpbullet),
+				GetBulletY(lpbullet),
+				GetBulletX(lpbullet) + 20,
+				GetBulletY(lpbullet) + 20);
+		}
 		//GetClientRect(hwnd, &rect);
 		//StretchBlt(hdc, 0, 0, rect.right, rect.bottom,
 		//	hdcMem, 0, 0, 1024, 1024, SRCCOPY);
@@ -386,13 +413,75 @@ LONG CALLBACK MainWndProc(
 		EndPaint(hwnd, &ps);
 		break;
 
-	case WM_KEYDOWN:
+	case WM_MOVING:
+		lprect = (LPRECT)lParam;
+		MoveWindow(hwndFighter,
+			(lprect->left + lprect->right - FIGHTER_WIDTH)/2, 
+			lprect->bottom-FIGHTER_HEIGHT,
+			FIGHTER_WIDTH, 
+			FIGHTER_HEIGHT,
+			TRUE);
 		break;
 
+	case WM_KEYDOWN:
+	{
+		RECT rectFighter;
+		switch (wParam)
+		{
+		case VK_LEFT:
+			GetWindowRect(hwndFighter, &rectFighter);
+			MoveWindow(hwndFighter,
+				rectFighter.left - FIGHTER_MOVE_STEP,
+				rectFighter.top,
+				FIGHTER_WIDTH,
+				FIGHTER_HEIGHT,
+				TRUE);
+			break;
+		case VK_RIGHT:
+			GetWindowRect(hwndFighter, &rectFighter);
+			MoveWindow(hwndFighter,
+				rectFighter.left + FIGHTER_MOVE_STEP,
+				rectFighter.top,
+				FIGHTER_WIDTH,
+				FIGHTER_HEIGHT,
+				TRUE);
+			break;
+		case VK_UP:
+			GetWindowRect(hwndFighter, &rectFighter);
+			MoveWindow(hwndFighter,
+				rectFighter.left,
+				rectFighter.top - FIGHTER_MOVE_STEP,
+				FIGHTER_WIDTH,
+				FIGHTER_HEIGHT,
+				TRUE);
+			break;
+		case VK_DOWN:
+			GetWindowRect(hwndFighter, &rectFighter);
+			MoveWindow(hwndFighter,
+				rectFighter.left,
+				rectFighter.top + FIGHTER_MOVE_STEP,
+				FIGHTER_WIDTH,
+				FIGHTER_HEIGHT,
+				TRUE);
+			break;
+		case 'S':
+			SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
+			GetWindowRect(hwndFighter, &rectFighter);
+			lpbullet = CreateBullet(
+				(rectFighter.left + rectFighter.right) / 2,
+				rectFighter.top);
+			break;
+		default:
+			break;
+		}
+		break;
+	}
 	case WM_LBUTTONDOWN:
 		break;
 
 	case WM_TIMER:
+		MoveBullet(lpbullet);
+		SendMessage(hwnd, WM_PAINT, 0, 0);
 		break;
 
 	case WM_DESTROY:
