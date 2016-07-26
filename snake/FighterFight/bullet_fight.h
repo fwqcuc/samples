@@ -12,6 +12,7 @@ typedef struct _BULLET
 #define BULLET_HIT	1
 #define BULLET_MOVE 2
 
+
 LPBULLET CreateBullet(unsigned int x, unsigned int y);
 void DestoryBullet(LPBULLET lpbullet);
 int MoveBullet(LPBULLET lpbullet); 
