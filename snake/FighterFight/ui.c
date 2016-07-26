@@ -3,9 +3,9 @@
 
 HINSTANCE hinst;
 HWND hwndFighter;
+HWND hwndMain;
 
-LPBULLET lpbullet = NULL;
-DWORD dwTimerElapse = 1000;
+DWORD dwTimerElapse = 100;
 
 #define TIMER_ID 12340
 #define TRANS_BK_COLOR RGB(255,255,255)
@@ -80,20 +80,21 @@ BOOL CreateFighterWindow()
 {
 
 	hwndFighter = CreateWindowEx(
-		WS_EX_LAYERED | WS_EX_TOPMOST,
+		WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_NOACTIVATE,
 		"fighter_class",			// 窗口类名，必须是已经注册了的窗口类
 		"",			// title-bar string 
-		WS_POPUP | WS_VISIBLE,	// 窗口的style，这个表示为top-level window 
+		WS_POPUP,	// 窗口的style，这个表示为top-level window 
 		CW_USEDEFAULT,			// 窗口水平位置default horizontal POINT 
 		CW_USEDEFAULT,			// 窗口垂直位置default vertical POINT 
 		CW_USEDEFAULT,			// 窗口宽度 default width 
 		CW_USEDEFAULT,			// 窗口高度 default height 
-		(HWND)NULL,				// 父窗口句柄 no owner window 
+		(HWND)hwndMain,				// 父窗口句柄 no owner window 
 		(HMENU)NULL,			// 窗口菜单的句柄 use class menu 
 		hinst,				// 应用程序实例句柄 handle to application instance 
 		(LPVOID)NULL);			// 指向附加数据的指针 no window-creation data 
 	if (!hwndFighter)
 	{
+		GetLastError();
 		// 窗口创建失败，消息框提示，并退出。
 		MessageBox(NULL, "创建窗口失败", "错误！", MB_ICONERROR | MB_OK);
 		return FALSE;
@@ -243,6 +244,7 @@ int WINAPI WinMain(
 
 	MSG msg;
 	int fGotMessage;
+	LONG lExStyle;
 
 	hinst = hinstance;
 
@@ -261,8 +263,7 @@ int WINAPI WinMain(
 	wc.hInstance = hinstance;
 	// hIcon成员用来指定窗口的图标
 	// 这里直接使用LoadIcon函数加载了一个系统预定义的图标，开发人员可也可以自己创建图标。
-	wc.hIcon = LoadIcon(NULL,
-		IDI_ERROR);
+	wc.hIcon = NULL;
 	// Cursor是鼠标光标，这里是设定了鼠标光标的样式。
 	// 直接使用LoadCursor API函数载入了一个系统预定义的光标样式，还有IDC_CROSS,IDC_HAND等样式 
 	wc.hCursor = LoadCursor(NULL,
@@ -289,9 +290,10 @@ int WINAPI WinMain(
 
 	// Create the main window. 
 
-	hwnd = CreateWindow(
+	hwnd = CreateWindowEx(
+		0,
 		"MainWClass",			// 窗口类名，必须是已经注册了的窗口类
-		"我的蛇好美！！",		// title-bar string 
+		"",		// title-bar string 
 		WS_OVERLAPPEDWINDOW,	// 窗口的style，这个表示为top-level window 
 		CW_USEDEFAULT,			// 窗口水平位置default horizontal POINT 
 		CW_USEDEFAULT,			// 窗口垂直位置default vertical POINT 
@@ -309,10 +311,16 @@ int WINAPI WinMain(
 		return -1;
 	}
 
+	//lExStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+	//lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+	//SetWindowLong(hwnd, GWL_EXSTYLE, lExStyle);
+
+	hwndMain = hwnd;
+
 	// 窗口创建成功，继续运行。
 
 	// 显示窗口，WinMain函数的nCmdShow参数在这里发挥作用，一般都设置为SW_SHOW
-	ShowWindow(hwnd, nCmdShow);
+	ShowWindow(hwnd, SW_SHOW);
 
 	// 刷新窗口，向窗口发送一个WM_PAINT消息，使得窗口进行重绘。
 	UpdateWindow(hwnd);
@@ -346,15 +354,160 @@ int WINAPI WinMain(
 
 HBITMAP hbmpSky;
 
+
+LONG OnCreate(HWND hwnd)
+{
+	//BITMAP bmp;
+	hbmpSky = LoadImage(NULL, "sky.bmp",
+		IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+	if (hbmpSky == NULL)
+	{
+		MessageBox(hwnd, "bmp file not find", "ERROR!",
+			MB_OK | MB_ICONERROR);
+		ExitProcess(0);
+	}
+	//GetObject(hbmpSky, sizeof(BITMAP), &bmp);
+	if (RegisterFighterClass())
+	{
+		CreateFighterWindow();
+	}
+
+	InitBulletsAndFights();
+	SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
+
+	return 0;
+}
+
+LONG OnResizeAndMove(HWND hwnd, LPRECT lpRect)
+{
+	MoveWindow(hwndFighter,
+		(lpRect->left + lpRect->right - FIGHTER_WIDTH) / 2,
+		lpRect->bottom - FIGHTER_HEIGHT,
+		FIGHTER_WIDTH,
+		FIGHTER_HEIGHT,
+		TRUE);
+}
+
+LONG OnPaint(HWND hwnd)
+{
+	HDC hdc, hdcMem;
+	//PAINTSTRUCT ps;
+	RECT rect;
+
+	unsigned int num, i;
+
+	hdc = GetDC(hwnd);
+	// Create a memory device compatible with the above DC variable
+	hdcMem = CreateCompatibleDC(hdc);
+	// Select the new bitmap
+	SelectObject(hdcMem, hbmpSky);
+	GetClientRect(hwnd, &rect);
+	//// Copy the bits from the memory DC into the current dc
+	StretchBlt(hdc,
+		rect.left,
+		rect.top,
+		rect.right - rect.left,
+		rect.bottom - rect.top,
+		hdcMem,
+		0, 0, 1920, 1080,
+		SRCCOPY);
+
+	SelectObject(hdcMem, GetStockObject(WHITE_BRUSH));
+
+	num = GetBulletsNum();
+	for (i = 0; i < num; i++)
+	{
+		LPBULLET lpBullet = GetBulletAt(i);
+		Ellipse(hdcMem,
+			GetBulletX(lpBullet),
+			GetBulletY(lpBullet),
+			GetBulletX(lpBullet) + 20,
+			GetBulletY(lpBullet) + 20);
+	}
+	DeleteDC(hdcMem);
+	ReleaseDC(hwnd, hdc);
+	DeleteDC(hdc);
+	return 0;
+}
+
+LONG OnKeyDown(HWND hwnd, UINT vk)
+{
+	RECT rectFighter;
+	switch (vk)
+	{
+	case VK_LEFT:
+		GetWindowRect(hwndFighter, &rectFighter);
+		MoveWindow(hwndFighter,
+			rectFighter.left - FIGHTER_MOVE_STEP,
+			rectFighter.top,
+			FIGHTER_WIDTH,
+			FIGHTER_HEIGHT,
+			TRUE);
+		break;
+	case VK_RIGHT:
+		GetWindowRect(hwndFighter, &rectFighter);
+		MoveWindow(hwndFighter,
+			rectFighter.left + FIGHTER_MOVE_STEP,
+			rectFighter.top,
+			FIGHTER_WIDTH,
+			FIGHTER_HEIGHT,
+			TRUE);
+		break;
+	case VK_UP:
+		GetWindowRect(hwndFighter, &rectFighter);
+		MoveWindow(hwndFighter,
+			rectFighter.left,
+			rectFighter.top - FIGHTER_MOVE_STEP,
+			FIGHTER_WIDTH,
+			FIGHTER_HEIGHT,
+			TRUE);
+		break;
+	case VK_DOWN:
+		GetWindowRect(hwndFighter, &rectFighter);
+		MoveWindow(hwndFighter,
+			rectFighter.left,
+			rectFighter.top + FIGHTER_MOVE_STEP,
+			FIGHTER_WIDTH,
+			FIGHTER_HEIGHT,
+			TRUE);
+		break;
+	case 'S':
+	{
+		POINT pt;
+		GetWindowRect(hwndFighter, &rectFighter);
+
+		pt.x = (rectFighter.left + rectFighter.right) / 2;
+		pt.y = rectFighter.top;
+
+		ScreenToClient(hwndMain, &pt);
+		NewBullet(pt.x, pt.y);
+	}
+	break;
+	default:
+		break;
+	}
+}
+
+LONG OnTimer(HWND hwnd)
+{
+	LPBULLET lpBullet;
+	unsigned int num = GetBulletsNum();
+	unsigned int i;
+	for (i = 0; i < num; i++)
+	{
+		lpBullet = GetBulletAt(i);
+		MoveBullet(lpBullet);
+	}
+}
+
 LONG CALLBACK MainWndProc(
 	HWND hwnd, //
 	UINT msg, // 消息
 	WPARAM wParam, // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
 	LPARAM lParam) // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
 {
-	HDC hdc, hdcMem;
-	PAINTSTRUCT ps;
-	RECT rect;
+
 	LPRECT lprect;
 	// 注意，是switch-case, 每次这个函数被调用，只会落入到一个case中。
 	switch (msg)
@@ -362,18 +515,7 @@ LONG CALLBACK MainWndProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		hbmpSky = LoadImage(NULL, "sky.bmp",
-			IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		if (hbmpSky == NULL)
-		{
-			MessageBox(hwnd, "bmp file not find", "ERROR!",
-				MB_OK | MB_ICONERROR);
-			ExitProcess(0);
-		}
-		if (RegisterFighterClass())
-		{
-			CreateFighterWindow();
-		}
+		OnCreate(hwnd);
 		break;
 
 		// 当系统认为窗口上的GDI对象应该被重绘时，会向窗口发送一个WM_PAINT消息。
@@ -381,107 +523,30 @@ LONG CALLBACK MainWndProc(
 		// 所有使用GDI在窗口上绘制图形的程序都 “必须” 写在这里。
 		// 如果不是在WM_PAINT消息的处理过程中绘制GDI图形，那么在窗口刷新时就会被新被抹除和覆盖
 	case WM_PAINT:
-		hdc = BeginPaint(hwnd, &ps);
-		// Create a memory device compatible with the above DC variable
-		hdcMem = CreateCompatibleDC(hdc);
-		// Select the new bitmap
-		SelectObject(hdcMem, hbmpSky);
-		GetClientRect(hwnd, &rect);
-		//// Copy the bits from the memory DC into the current dc
-		StretchBlt(hdc,
-			rect.left, 
-			rect.top, 
-			rect.right-rect.left, 
-			rect.bottom - rect.top,
-			hdcMem, 
-			0, 0, 1920, 1080, 
-			SRCCOPY);
-		if (lpbullet != NULL)
-		{
-			SelectObject(hdcMem, GetStockObject(WHITE_BRUSH));
-			Ellipse(hdcMem,
-				GetBulletX(lpbullet),
-				GetBulletY(lpbullet),
-				GetBulletX(lpbullet) + 20,
-				GetBulletY(lpbullet) + 20);
-		}
-		//GetClientRect(hwnd, &rect);
-		//StretchBlt(hdc, 0, 0, rect.right, rect.bottom,
-		//	hdcMem, 0, 0, 1024, 1024, SRCCOPY);
-		// Restore the old bitmap
-		DeleteDC(hdcMem);
-		EndPaint(hwnd, &ps);
+		OnPaint(hwnd);
 		break;
 
 	case WM_MOVING:
-		lprect = (LPRECT)lParam;
-		MoveWindow(hwndFighter,
-			(lprect->left + lprect->right - FIGHTER_WIDTH)/2, 
-			lprect->bottom-FIGHTER_HEIGHT,
-			FIGHTER_WIDTH, 
-			FIGHTER_HEIGHT,
-			TRUE);
+		OnResizeAndMove(hwnd, (LPRECT)lParam);
 		break;
 
-	case WM_KEYDOWN:
+	case WM_SIZE:
 	{
-		RECT rectFighter;
-		switch (wParam)
-		{
-		case VK_LEFT:
-			GetWindowRect(hwndFighter, &rectFighter);
-			MoveWindow(hwndFighter,
-				rectFighter.left - FIGHTER_MOVE_STEP,
-				rectFighter.top,
-				FIGHTER_WIDTH,
-				FIGHTER_HEIGHT,
-				TRUE);
-			break;
-		case VK_RIGHT:
-			GetWindowRect(hwndFighter, &rectFighter);
-			MoveWindow(hwndFighter,
-				rectFighter.left + FIGHTER_MOVE_STEP,
-				rectFighter.top,
-				FIGHTER_WIDTH,
-				FIGHTER_HEIGHT,
-				TRUE);
-			break;
-		case VK_UP:
-			GetWindowRect(hwndFighter, &rectFighter);
-			MoveWindow(hwndFighter,
-				rectFighter.left,
-				rectFighter.top - FIGHTER_MOVE_STEP,
-				FIGHTER_WIDTH,
-				FIGHTER_HEIGHT,
-				TRUE);
-			break;
-		case VK_DOWN:
-			GetWindowRect(hwndFighter, &rectFighter);
-			MoveWindow(hwndFighter,
-				rectFighter.left,
-				rectFighter.top + FIGHTER_MOVE_STEP,
-				FIGHTER_WIDTH,
-				FIGHTER_HEIGHT,
-				TRUE);
-			break;
-		case 'S':
-			SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
-			GetWindowRect(hwndFighter, &rectFighter);
-			lpbullet = CreateBullet(
-				(rectFighter.left + rectFighter.right) / 2,
-				rectFighter.top);
-			break;
-		default:
-			break;
-		}
+		RECT rectNew;
+		GetWindowRect(hwnd, &rectNew);
+		OnResizeAndMove(hwnd, &rectNew);
 		break;
 	}
+	case WM_KEYDOWN:
+		OnKeyDown(hwnd, (UINT)wParam);
+		break;
+
 	case WM_LBUTTONDOWN:
 		break;
 
 	case WM_TIMER:
-		MoveBullet(lpbullet);
-		SendMessage(hwnd, WM_PAINT, 0, 0);
+		OnTimer(hwnd);
+		OnPaint(hwnd);
 		break;
 
 	case WM_DESTROY:

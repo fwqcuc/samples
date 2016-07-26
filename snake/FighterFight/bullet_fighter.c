@@ -1,4 +1,41 @@
 #include "bullet_fight.h"
+#include "LinkList.h"
+
+PLIST list_bullets;
+PLIST list_fights;
+
+int InitBulletsAndFights()
+{
+	list_bullets = ListCreate(0);
+	list_fights = ListCreate(0);
+	return 0;
+}
+
+int DestoryAllBulletAndFights()
+{
+	ListClearAndFree(list_bullets);
+	ListClearAndFree(list_fights);
+	list_bullets = 0;
+	list_fights = 0;
+	return 0;
+}
+
+int NewBullet(unsigned int x, unsigned int y)
+{
+	LPBULLET lpNewBullet = CreateBullet(x, y);
+	ListPushBack(list_bullets, lpNewBullet);
+	return 0;
+}
+
+unsigned int GetBulletsNum()
+{
+	return ListSize(list_bullets);
+}
+
+LPBULLET GetBulletAt(unsigned int i)
+{
+	return (LPBULLET)ListGetAt(list_bullets, i);
+}
 
 LPBULLET CreateBullet(unsigned int x, unsigned int y)
 {

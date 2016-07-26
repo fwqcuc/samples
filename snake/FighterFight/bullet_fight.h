@@ -18,3 +18,9 @@ void DestoryBullet(LPBULLET lpbullet);
 int MoveBullet(LPBULLET lpbullet); 
 unsigned int GetBulletX(LPBULLET lpbullet);
 unsigned int GetBulletY(LPBULLET lpbullet);
+
+int InitBulletsAndFights();
+int DestoryAllBulletAndFights();
+int NewBullet(unsigned int x, unsigned int y);
+unsigned int GetBulletsNum();
+LPBULLET GetBulletAt(unsigned int i);
