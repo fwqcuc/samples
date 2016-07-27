@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include "auto_fly.h"
+#include "LinkList.h"
 #include "ui.h"
 
 #pragma comment (lib, "Winmm.lib")
@@ -686,6 +687,9 @@ int WINAPI WinMain(
 	*
 	*******************************************************************************/
 
+
+
+
 	if (BackGroundWindwowRegister(hinstance))
 		hwndBackground = BackgroundWindowCreate(hinstance);
 	else
@@ -894,10 +898,10 @@ LONG FighterTimer(HWND hwnd)
 
 	destory_fly_by_state();
 
-	//if (rand() % 1000 < 20) // 1%的概率，随机产生敌机。
-	//{
-	//	gen_enemy();
-	//}
+	if (rand() % 1000 < 20) // 1%的概率，随机产生敌机。
+	{
+		gen_enemy();
+	}
 
 	return 0;
 }
