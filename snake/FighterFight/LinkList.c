@@ -25,6 +25,62 @@ ListGetSize			- 获得当前链表大小（节点数量）。
 #include "LinkList.h"
 
 
+
+#ifdef _LIST_DEBUG
+#include <stdio.h>
+void ListPrint(PLIST list)
+{
+	int i;
+	int n = ListSize(list);
+	printf("size: %d\n", ListSize(list));
+	for (i = 0; i < n; i++)
+	{
+		printf("data: %p", ListGetAt(list, i));
+	}
+}
+
+int test_case()
+{
+	PLIST test = ListCreate(0);
+	ListPrint(test);
+
+	ListPushBack(test, 0);
+	ListPrint(test);
+
+	ListPushBack(test, 1);
+	ListPushBack(test, 2);
+	ListPushBack(test, 3);
+	ListPrint(test);
+
+	ListPushBack(test, 4);
+	ListPushBack(test, 5);
+	ListPushBack(test, 6);
+	ListPrint(test);
+
+	ListDeleteAt(test, 4);
+	ListPrint(test);
+
+	ListDeleteAt(test, 0);
+	ListPrint(test);
+
+	ListDeleteAt(test, 5);
+	ListPrint(test);
+
+	ListInsertAt(test, 3, 7);
+	ListPrint(test);
+
+	ListInsertAt(test, 0, 8);
+	ListPrint(test);
+
+	ListInsertAt(test, ListSize(test) - 1, 9);
+	ListPrint(test);
+
+	ListDistory(test);
+}
+
+#endif
+
+
 // 创建一个链表节点
 PNODE NodeCreate(void* data)
 {
@@ -76,7 +132,7 @@ int ListInsertAt(PLIST list, unsigned int n, void* data)
 	i = 1;
 	tmp = list->first;
 	prev = tmp;
-	while (i < n)
+	while (i <= n)
 	{
 		prev = tmp;
 		tmp = tmp->next;
@@ -86,7 +142,7 @@ int ListInsertAt(PLIST list, unsigned int n, void* data)
 	}
 	new_node = NodeCreate(data);
 	prev->next = new_node;
-	new_node->next = tmp->next;
+	new_node->next = tmp;
 	return i;
 }
 
@@ -109,7 +165,7 @@ void* ListDeleteAt(PLIST list, int n)
 	}
 	i = 1;
 	
-	while (i < n)
+	while (i <= n)
 	{
 		prev = tmp;
 		tmp = tmp->next;
