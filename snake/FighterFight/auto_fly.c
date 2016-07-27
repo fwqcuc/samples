@@ -69,7 +69,7 @@ LPAUTO_FLY get_fly_at(unsigned int i)
 
 void fly_move(LPAUTO_FLY auto_fly)
 {
-	if (auto_fly->type = FLY_TYPE_BULLET)
+	if (auto_fly->type == FLY_TYPE_BULLET)
 		auto_fly->y -= auto_fly->y_step;
 	else if (auto_fly->type == FLY_TYPE_ENEMY)
 		auto_fly->y += auto_fly->y_step;
@@ -159,15 +159,20 @@ void destory_fly_by_state()
 {
 	unsigned int num, i;
 	LPAUTO_FLY auto_fly;
+	
+again:
 	num = get_flys_num();
 
 	// 从后往前删，不然一次循环删除多个的话，就会超
 	// 或者一次循环只删除一个，多次循环。
 	// 这是链表可以改接的地方
-	for (i = num; i >= 0; i--)
+	for (i = 0; i < num; i++)
 	{
 		auto_fly = get_fly_at(i);
 		if (auto_fly->state == FLY_HIT || auto_fly->state == FLY_OUT)
+		{
 			destory_fly_at(i);
+			goto again;
+		}
 	}
 }

@@ -8,7 +8,7 @@
 #define CLASS_NAME_FIGHT	"fight_class"
 #define CLASS_NAME_FLYS		"flys_class"
 
-#define BITMAP_FILE_BK		"sky.bmp"
+#define BITMAP_FILE_BK		"cloud.bmp"
 
 #define TIMER_ID			12340
 #define TRANS_BK_COLOR		RGB(255,255,255)
@@ -31,7 +31,12 @@ HWND hwndBackground;
 
 HBITMAP hbmpFighter;
 HBITMAP hbmpBackground;
-DWORD dwTimerElapse = 100;
+
+#define COLOR_BULLET RGB(0,255,0)
+
+POINT ptFighter;
+
+DWORD dwTimerElapse = 40;
 
 LONG CALLBACK BackGroundWindowProc(
 	HWND hwnd, //
@@ -69,7 +74,7 @@ LONG CALLBACK BackGroundWindowProc(
 		break;
 	}
 	case WM_KEYDOWN:
-		//OnKeyDown(hwnd, (UINT)wParam);
+		OnKeydown(hwnd, (UINT)wParam);
 		break;
 
 	case WM_LBUTTONDOWN:
@@ -145,10 +150,10 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 	// Create the main window. 
 	HWND hwnd;
 	hwnd = CreateWindowEx(
-		0,
+		WS_EX_APPWINDOW,
 		CLASS_NAME_BK,			// 窗口类名，必须是已经注册了的窗口类
 		"",		// title-bar string 
-		WS_OVERLAPPEDWINDOW,	// 窗口的style，这个表示为top-level window 
+		WS_POPUP,	// 窗口的style，这个表示为top-level window 
 		CW_USEDEFAULT,			// 窗口水平位置default horizontal POINT 
 		CW_USEDEFAULT,			// 窗口垂直位置default vertical POINT 
 		CW_USEDEFAULT,			// 窗口宽度 default width 
@@ -165,6 +170,13 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 		return NULL;
 	}
 
+	//if (!SetLayeredWindowAttributes(
+	//	hwnd, TRANS_BK_COLOR,
+	//	0, LWA_COLORKEY | LWA_ALPHA))
+	//{
+	//	DWORD dwError = GetLastError();
+	//}
+
 	// 窗口创建成功，继续运行。
 
 	// 显示窗口，WinMain函数的nCmdShow参数在这里发挥作用，一般都设置为SW_SHOW
@@ -176,7 +188,108 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 
 }
 
-LONG CALLBACK FighterWindowProc(
+LONG FightWindowPaint(HWND hwnd)
+{
+	HDC hdc, hdcMem, hdcBitmapSrc;
+	HBITMAP hBitmap;
+	//PAINTSTRUCT ps;
+	//RECT rect;
+	int num, i;
+	LPAUTO_FLY auto_fly;
+	BITMAP bmp;
+
+	RECT rect;
+
+	HPEN oldPen, hpenBullet;
+	HBRUSH oldBursh, hbrBullet;
+
+	GetClientRect(hwnd, &rect);
+
+	hdc = GetDC(hwnd);
+
+	// 注意 CreateCompatibleDC 中的这一段话：
+	// 必须先给DC选择位图；
+	// Before an application can use a memory DC for drawing operations, 
+	// it must select a bitmap of the correct width and height into the DC. 
+	// To select a bitmap into a DC, use the CreateCompatibleBitmap function
+	// 注意：
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/dd183488(v=vs.85).aspx
+	hdcMem = CreateCompatibleDC(hdc);
+	hBitmap = CreateCompatibleBitmap(hdc, // 不能是hdcMem，否则会变成黑白2色位图
+		rect.right - rect.left, rect.bottom - rect.top);
+	
+	SelectObject(hdcMem, hBitmap);
+
+	hdcBitmapSrc = CreateCompatibleDC(hdc);
+	SelectObject(hdcBitmapSrc, hbmpFighter);
+
+	GetObject(hbmpFighter, sizeof(BITMAP), &bmp);
+
+	/*******************************************************************************
+	* #############  画背景  ################
+	*
+	*******************************************************************************/
+	FillRect(hdcMem, &rect, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+
+	// 画子弹
+	hbrBullet = CreateSolidBrush(COLOR_BULLET);
+	hpenBullet = CreatePen(PS_NULL, 0, 0);
+	oldBursh = SelectObject(hdcMem, hbrBullet);
+	oldPen = SelectObject(hdcMem, hpenBullet);
+	num = get_flys_num();
+	for (i = 0; i < num; i++)
+	{
+		auto_fly = get_fly_at(i);
+		if (auto_fly->state == FLY_HIT)
+		{
+			// todo 爆炸；
+		}
+		else
+		{
+			Ellipse(hdcMem,
+				get_fly_x(auto_fly) - 4,
+				get_fly_y(auto_fly) - 6,
+				get_fly_x(auto_fly) + 4,
+				get_fly_y(auto_fly) + 6);
+		}
+
+	}
+
+	oldBursh = SelectObject(hdcMem, oldBursh);
+	oldPen = SelectObject(hdcMem, oldPen);
+
+
+	//// 画飞机
+
+	StretchBlt(hdcMem,
+		ptFighter.x - FIGHTER_WIDTH / 2, ptFighter.y,
+		FIGHTER_WIDTH, FIGHTER_HEIGHT,
+		hdcBitmapSrc,
+		0, 0, bmp.bmWidth, bmp.bmHeight,
+		SRCCOPY);
+
+
+	// 拷贝到DC
+	BitBlt(hdc,
+		rect.left, rect.top,
+		rect.right - rect.left, rect.bottom - rect.top,
+		hdcMem,
+		0, 0,
+		SRCCOPY);
+
+	DeleteObject(hpenBullet);
+	DeleteObject(hbrBullet);
+
+	DeleteObject(hBitmap);
+	DeleteDC(hdcBitmapSrc);
+	DeleteDC(hdcMem);
+	ReleaseDC(hwnd, hdc);
+	//DeleteDC(hdc);
+	return 0;
+}
+
+LONG CALLBACK FightWindowProc(
 	HWND hwnd, //
 	UINT msg, // 消息
 	WPARAM wParam, // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
@@ -191,44 +304,21 @@ LONG CALLBACK FighterWindowProc(
 		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
-		break;
+		FighterCreate(hwnd);
 
-		// 当系统认为窗口上的GDI对象应该被重绘时，会向窗口发送一个WM_PAINT消息。
-		// 当然应用程序也可以通过调用 UpateWindow来主动向窗口发送一个WM_PAINT消息。
-		// 所有使用GDI在窗口上绘制图形的程序都 “必须” 写在这里。
-		// 如果不是在WM_PAINT消息的处理过程中绘制GDI图形，那么在窗口刷新时就会被新被抹除和覆盖
 	case WM_PAINT:
-		hdc = BeginPaint(hwnd, &ps);
-		// Create a memory device compatible with the above DC variable
-		hdcMem = CreateCompatibleDC(hdc);
-		// Select the new bitmap
-		SelectObject(hdcMem, hbmpFighter);
-		GetClientRect(hwnd, &rect);
-		//// Copy the bits from the memory DC into the current dc
-		StretchBlt(hdc,
-			rect.left,
-			rect.top,
-			rect.right - rect.left,
-			rect.bottom - rect.top,
-			hdcMem,
-			0, 0, 1024, 1024,
-			SRCCOPY);
-		//GetClientRect(hwnd, &rect);
-		//StretchBlt(hdc, 0, 0, rect.right, rect.bottom,
-		//	hdcMem, 0, 0, 1024, 1024, SRCCOPY);
-		// Restore the old bitmap
-		DeleteDC(hdcMem);
-		EndPaint(hwnd, &ps);
+		FightWindowPaint(hwnd);
 		break;
 
 	case WM_KEYDOWN:
-		FighterKeyDown(hwnd, (UINT)wParam);
 		break;
 
 	case WM_LBUTTONDOWN:
 		break;
 
 	case WM_TIMER:
+		FighterTimer(hwnd);
+		FightWindowPaint(hwnd);
 		break;
 
 	case WM_DESTROY:
@@ -245,7 +335,7 @@ LONG CALLBACK FighterWindowProc(
 }
 
 
-HWND FighterWindowCreate(HINSTANCE hinstance)
+HWND FightWindowCreate(HINSTANCE hinstance)
 {
 	HWND hwnd;
 	hwnd = CreateWindowEx(
@@ -285,7 +375,7 @@ HWND FighterWindowCreate(HINSTANCE hinstance)
 	return hwnd;
 }
 
-BOOL FighterWindowRegister(HINSTANCE hinstance)
+BOOL FightWindowRegister(HINSTANCE hinstance)
 {
 	WNDCLASS wc;
 	// 窗口句柄，hwnd变量是主窗口的句柄，这个程序中只用到了一个窗口。
@@ -295,7 +385,7 @@ BOOL FighterWindowRegister(HINSTANCE hinstance)
 	// 窗口类的样式，这里设置的样式表示窗口在大小变化是需要重绘
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	// 一个函数指针，这个函数用来处理窗口消息。 详见 MainWndProc函数的注释。
-	wc.lpfnWndProc = FighterWindowProc;
+	wc.lpfnWndProc = FightWindowProc;
 	// no extra class memory 
 	wc.cbClsExtra = 0;
 	// no extra window memory
@@ -331,78 +421,123 @@ LONG AutoflysPaint(HWND hwnd)
 {
 	HDC hdc, hdcMem;
 	//PAINTSTRUCT ps;
+	//RECT rect;
+	int num, i;
+	LPAUTO_FLY auto_fly;
+
 	RECT rect;
 
-	unsigned int i;
-	HBITMAP hbmMem;
-	BITMAP bmp;
+	GetClientRect(hwnd, &rect);
 
 	hdc = GetDC(hwnd);
-	GetClientRect(hwnd, &rect);
-	// Create a memory device compatible with the above DC variable
+
+	// 注意 CreateCompatibleDC 中的这一段话：
+	// Before an application can use a memory DC for drawing operations, 
+	// it must select a bitmap of the correct width and height into the DC. 
+	// To select a bitmap into a DC, use the CreateCompatibleBitmap function
+	// 注意：
+	// http://msdn.microsoft.com/en-us/library/windows/desktop/dd183488(v=vs.85).aspx
 	hdcMem = CreateCompatibleDC(hdc);
 
-	SelectObject(hdcMem, hbmpBackground);
 
-	GetObject(hbmpBackground, sizeof(BITMAP), &bmp);
+	/*******************************************************************************
+	* #############  画背景  ################
+	*
+	*******************************************************************************/
+	FillRect(hdcMem, &rect, (HBRUSH)GetStockObject(BLACK_BRUSH));
 
-	StretchBlt(hdc,
+
+	SelectObject(hdcMem, GetStockObject(BLACK_BRUSH));
+	SelectObject(hdcMem, GetStockObject(BLACK_PEN));
+
+	num = get_flys_num();
+
+
+	for (i = 0; i < num; i++)
+	{
+		auto_fly = get_fly_at(i);
+		if (auto_fly->state == FLY_HIT)
+		{
+			// todo 爆炸；
+		}
+		else
+		{
+			Ellipse(hdcMem,
+				50,
+				50,
+				500,
+				500);
+			//Ellipse(hdcMem,
+			//	get_fly_x(auto_fly) - 10,
+			//	get_fly_y(auto_fly) - 10,
+			//	get_fly_x(auto_fly) + 10,
+			//	get_fly_y(auto_fly) + 10);
+		}
+
+	}
+
+
+	//SelectObject(hdcMem, hbmpBackground);
+
+	//GetObject(hbmpBackground, sizeof(BITMAP), &bmp);
+
+	BitBlt(hdc,
 		rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top,
 		hdcMem,
 		0, 0,
-		bmp.bmWidth, bmp.bmHeight,
 		SRCCOPY);
 
-	DeleteObject(hdcMem);
+	//DeleteObject(hdcMem);
 	DeleteDC(hdcMem);
 	ReleaseDC(hwnd, hdc);
 	DeleteDC(hdc);
 	return 0;
 }
 
-LONG CALLBACK AutoflyWindowProc(HWND hwnd, UINT msg, WPARAM wParam,LPARAM lParam)
-{
-	//PAINTSTRUCT ps;
-	//RECT rect;
-	// 注意，是switch-case, 每次这个函数被调用，只会落入到一个case中。
-	switch (msg)
-	{
-		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
-		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
-	case WM_CREATE:
-		AutoflysCreate(hwnd);
-		break;
-
-		// 当系统认为窗口上的GDI对象应该被重绘时，会向窗口发送一个WM_PAINT消息。
-		// 当然应用程序也可以通过调用 UpateWindow来主动向窗口发送一个WM_PAINT消息。
-		// 所有使用GDI在窗口上绘制图形的程序都 “必须” 写在这里。
-		// 如果不是在WM_PAINT消息的处理过程中绘制GDI图形，那么在窗口刷新时就会被新被抹除和覆盖
-	case WM_PAINT:
-		AutoflysPaint(hwnd);
-		break;
-
-	case WM_KEYDOWN:
-		break;
-
-	case WM_LBUTTONDOWN:
-		break;
-
-	case WM_TIMER:
-		break;
-
-	case WM_DESTROY:
-		ExitProcess(0);
-		break;
-
-	default:
-		break;
-	}
-	return DefWindowProc(hwnd,
-		msg,
-		wParam,
-		lParam);
-}
+//LONG CALLBACK AutoflyWindowProc(HWND hwnd, UINT msg, WPARAM wParam,LPARAM lParam)
+//{
+//	//PAINTSTRUCT ps;
+//	//RECT rect;
+//	// 注意，是switch-case, 每次这个函数被调用，只会落入到一个case中。
+//	switch (msg)
+//	{
+//		// 当窗口被创建时，收到的第一个消息就是WM_CREATE，
+//		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
+//	case WM_CREATE:
+//		AutoflysCreate(hwnd);
+//		break;
+//
+//		// 当系统认为窗口上的GDI对象应该被重绘时，会向窗口发送一个WM_PAINT消息。
+//		// 当然应用程序也可以通过调用 UpateWindow来主动向窗口发送一个WM_PAINT消息。
+//		// 所有使用GDI在窗口上绘制图形的程序都 “必须” 写在这里。
+//		// 如果不是在WM_PAINT消息的处理过程中绘制GDI图形，那么在窗口刷新时就会被新被抹除和覆盖
+//	case WM_PAINT:
+//		AutoflysPaint(hwnd);
+//		break;
+//
+//	case WM_KEYDOWN:
+//		break;
+//
+//	case WM_LBUTTONDOWN:
+//		break;
+//
+//	case WM_TIMER:
+//		AutoFlysTimer(hwnd);
+//		break;
+//
+//	case WM_DESTROY:
+//		ExitProcess(0);
+//		break;
+//
+//	default:
+//		break;
+//	}
+//	return DefWindowProc(hwnd,
+//		msg,
+//		wParam,
+//		lParam);
+//}
 
 
 HWND AutoflyWindowCreate(HINSTANCE hinstance)
@@ -444,48 +579,48 @@ HWND AutoflyWindowCreate(HINSTANCE hinstance)
 	return hwnd;
 }
 
-BOOL AutoflysWindowRegister(HINSTANCE hinstance)
-{
-	WNDCLASS wc;
-	// 窗口句柄，hwnd变量是主窗口的句柄，这个程序中只用到了一个窗口。
-	HWND hwnd;
-
-	// Fill in the window class structure with parameters 
-	// that describe the main window. 
-	// 窗口类的样式，这里设置的样式表示窗口在大小变化是需要重绘
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	// 一个函数指针，这个函数用来处理窗口消息。 详见 MainWndProc函数的注释。
-	wc.lpfnWndProc = AutoflyWindowProc;
-	// no extra class memory 
-	wc.cbClsExtra = 0;
-	// no extra window memory
-	wc.cbWndExtra = 0;
-	// handle to instance 
-	wc.hInstance = hinst;
-	// hIcon成员用来指定窗口的图标
-	// 这里直接使用LoadIcon函数加载了一个系统预定义的图标，开发人员可也可以自己创建图标。
-	wc.hIcon = NULL;
-	// Cursor是鼠标光标，这里是设定了鼠标光标的样式。
-	// 直接使用LoadCursor API函数载入了一个系统预定义的光标样式，还有IDC_CROSS,IDC_HAND等样式 
-	wc.hCursor = LoadCursor(NULL,
-		IDC_CROSS);
-	// GetStockObject的功能是加载一个系统预定义（在栈中）的GDI对象，
-	// 这里加载的是一个白色的画刷，有关画刷和GDI对象，详见GDI说明。
-	wc.hbrBackground = (HBRUSH)CreateSolidBrush(TRANS_BK_COLOR);
-	// 窗口的菜单的资源名。
-	wc.lpszMenuName = NULL;
-	// 给窗口类起一个名字，在创建窗口时需要这个名字。
-	wc.lpszClassName = CLASS_NAME_FLYS;
-	// Register the window class. 
-
-	if (!RegisterClass(&wc))
-	{
-		// 窗口注册失败，消息框提示，并退出。
-		MessageBox(NULL, "创建窗口class失败", "错误！", MB_ICONERROR | MB_OK);
-		return FALSE;
-	}
-	return TRUE;
-}
+//BOOL AutoflysWindowRegister(HINSTANCE hinstance)
+//{
+//	WNDCLASS wc;
+//	// 窗口句柄，hwnd变量是主窗口的句柄，这个程序中只用到了一个窗口。
+//	HWND hwnd;
+//
+//	// Fill in the window class structure with parameters 
+//	// that describe the main window. 
+//	// 窗口类的样式，这里设置的样式表示窗口在大小变化是需要重绘
+//	wc.style = CS_HREDRAW | CS_VREDRAW;
+//	// 一个函数指针，这个函数用来处理窗口消息。 详见 MainWndProc函数的注释。
+//	wc.lpfnWndProc = AutoflyWindowProc;
+//	// no extra class memory 
+//	wc.cbClsExtra = 0;
+//	// no extra window memory
+//	wc.cbWndExtra = 0;
+//	// handle to instance 
+//	wc.hInstance = hinst;
+//	// hIcon成员用来指定窗口的图标
+//	// 这里直接使用LoadIcon函数加载了一个系统预定义的图标，开发人员可也可以自己创建图标。
+//	wc.hIcon = NULL;
+//	// Cursor是鼠标光标，这里是设定了鼠标光标的样式。
+//	// 直接使用LoadCursor API函数载入了一个系统预定义的光标样式，还有IDC_CROSS,IDC_HAND等样式 
+//	wc.hCursor = LoadCursor(NULL,
+//		IDC_CROSS);
+//	// GetStockObject的功能是加载一个系统预定义（在栈中）的GDI对象，
+//	// 这里加载的是一个白色的画刷，有关画刷和GDI对象，详见GDI说明。
+//	wc.hbrBackground = (HBRUSH)CreateSolidBrush(TRANS_BK_COLOR);
+//	// 窗口的菜单的资源名。
+//	wc.lpszMenuName = NULL;
+//	// 给窗口类起一个名字，在创建窗口时需要这个名字。
+//	wc.lpszClassName = CLASS_NAME_FLYS;
+//	// Register the window class. 
+//
+//	if (!RegisterClass(&wc))
+//	{
+//		// 窗口注册失败，消息框提示，并退出。
+//		MessageBox(NULL, "创建窗口class失败", "错误！", MB_ICONERROR | MB_OK);
+//		return FALSE;
+//	}
+//	return TRUE;
+//}
 
 
 
@@ -534,16 +669,10 @@ int WINAPI WinMain(
 	*
 	*******************************************************************************/
 
-	if(BackGroundWindwowRegister(hinstance))
+	if (BackGroundWindwowRegister(hinstance))
 		hwndBackground = BackgroundWindowCreate(hinstance);
-
-	if( FighterWindowRegister(hinstance))
-		hwndFighter = FighterWindowCreate(hinstance);
-
-	if (AutoflysWindowRegister(hinstance))
-		hwndAutoflys = AutoflyWindowCreate(hinstance);
-	
-
+	else
+		return 0;
 
 
 	/*******************************************************************************
@@ -560,7 +689,7 @@ int WINAPI WinMain(
 	* "MSG"就是用来表示"消息"的数据类型。 这里定义了一个MSG类型的变量，变量名为msg
 	*
 	*******************************************************************************/
-
+	//SetFocus(hwndBackground);
 
 	// 以下进入消息循环。获取消息--翻译消息--分配消息（由窗口的消息处理函数来处理消息）
 	while ((fGotMessage = GetMessage(&msg, (HWND)NULL, 0, 0)) != 0
@@ -577,6 +706,13 @@ int WINAPI WinMain(
 
 LONG BackgroundCreate(HWND hwnd)
 {
+
+	if (FightWindowRegister(hinst))
+		hwndFighter = FightWindowCreate(hinst);
+
+	//if (AutoflysWindowRegister(hinst))
+	//	hwndAutoflys = AutoflyWindowCreate(hinst);
+
 	//BITMAP bmp;
 	hbmpBackground = LoadImage(NULL, BITMAP_FILE_BK,
 		IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -588,25 +724,39 @@ LONG BackgroundCreate(HWND hwnd)
 		ExitProcess(0);
 	}
 
+	MoveWindow(hwnd, 100, 20, MAX_X, MAX_Y, TRUE);
+
+	ptFighter.x = MAX_X / 2;
+	ptFighter.y = MAX_Y - FIGHTER_HEIGHT;
+
+	SetFocus(hwnd);
+
 	return 0;
 }
 
-LONG AutoflysCreate(HWND hwnd)
-{
-	flys_init();
-	SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
-
-	return 0;
-}
+//LONG AutoflysCreate(HWND hwnd)
+//{
+//
+//	flys_init();
+//	SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
+//	return 0;
+//}
 
 LONG BackgroundResizeAndMove(HWND hwnd, LPRECT lpRect)
 {
-	MoveWindow(hwndFighter,
-		(lpRect->left + lpRect->right - FIGHTER_WIDTH) / 2,
-		lpRect->bottom - FIGHTER_HEIGHT,
-		FIGHTER_WIDTH,
-		FIGHTER_HEIGHT,
-		TRUE);
+
+	SetWindowPos(hwndFighter, HWND_TOPMOST, lpRect->left, lpRect->top,
+		lpRect->right - lpRect->left, lpRect->bottom - lpRect->top, SWP_SHOWWINDOW);
+
+	//SetWindowPos(hwndFighter, HWND_TOPMOST,
+	//	(lpRect->left + lpRect->right - FIGHTER_WIDTH) / 2,
+	//	lpRect->bottom - FIGHTER_HEIGHT,
+	//	FIGHTER_WIDTH,
+	//	FIGHTER_HEIGHT,
+	//	SWP_SHOWWINDOW);
+	
+	//SetFocus(hwndBackground);
+
 	return 0;
 }
 
@@ -644,67 +794,69 @@ LONG BackgroundPaint(HWND hwnd)
 	return 0;
 }
 
-LONG FighterKeyDown(HWND hwnd, UINT vk)
+LONG FighterCreate(HWND hwnd)
+{
+	//BITMAP bmp;
+	hbmpFighter = LoadImage(NULL, "fight.bmp",
+		IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+	if (hbmpFighter == NULL)
+	{
+		MessageBox(hwnd, "bmp file not find", "ERROR!",
+			MB_OK | MB_ICONERROR);
+		ExitProcess(0);
+	}
+
+	flys_init();
+	SetTimer(hwnd, TIMER_ID, dwTimerElapse, NULL);
+
+
+
+	return 0;
+
+	//SetFocus(hwndBackground);
+
+	//MoveWindow(hwnd, 100, 100, MAX_X, MAX_Y, TRUE);
+}
+
+LONG OnKeydown(HWND hwnd, UINT vk)
 {
 	RECT rectFighter;
+	//GetAsyncKeyState()
 	switch (vk)
 	{
 	case VK_LEFT:
-		GetWindowRect(hwndFighter, &rectFighter);
-		MoveWindow(hwndFighter,
-			rectFighter.left - FIGHTER_MOVE_STEP,
-			rectFighter.top,
-			FIGHTER_WIDTH,
-			FIGHTER_HEIGHT,
-			TRUE);
+		ptFighter.x -= FIGHTER_MOVE_STEP;
+		if (ptFighter.x < 0)
+			ptFighter.x = 0;
 		break;
 	case VK_RIGHT:
-		GetWindowRect(hwndFighter, &rectFighter);
-		MoveWindow(hwndFighter,
-			rectFighter.left + FIGHTER_MOVE_STEP,
-			rectFighter.top,
-			FIGHTER_WIDTH,
-			FIGHTER_HEIGHT,
-			TRUE);
+		ptFighter.x += FIGHTER_MOVE_STEP;
+		if (ptFighter.x > MAX_X)
+			ptFighter.x = MAX_X;
 		break;
 	case VK_UP:
-		GetWindowRect(hwndFighter, &rectFighter);
-		MoveWindow(hwndFighter,
-			rectFighter.left,
-			rectFighter.top - FIGHTER_MOVE_STEP,
-			FIGHTER_WIDTH,
-			FIGHTER_HEIGHT,
-			TRUE);
+		ptFighter.y -= FIGHTER_MOVE_STEP;
+		if (ptFighter.y < 0)
+			ptFighter.y = 0;
 		break;
 	case VK_DOWN:
-		GetWindowRect(hwndFighter, &rectFighter);
-		MoveWindow(hwndFighter,
-			rectFighter.left,
-			rectFighter.top + FIGHTER_MOVE_STEP,
-			FIGHTER_WIDTH,
-			FIGHTER_HEIGHT,
-			TRUE);
+		ptFighter.y += FIGHTER_MOVE_STEP;
+		if (ptFighter.y > MAX_Y)
+			ptFighter.y = MAX_Y;
 		break;
 	case 'S':
-	{
-		POINT pt;
-		GetWindowRect(hwndFighter, &rectFighter);
-
-		pt.x = rectFighter.left;
-		pt.y = rectFighter.top;
-
-		//ScreenToClient(hwndMain, &pt);
-		gen_bullet(pt.x + FIGHTER_WIDTH/2, pt.y);
+		gen_bullet(ptFighter.x , ptFighter.y);
 		//PlaySound("C:\\Windows\\Media\\ir_end.wav", NULL, SND_FILENAME);
-	}
-	break;
+		break;
 	default:
 		break;
 	}
+	FightWindowPaint(hwndFighter);
 	return 0;
 }
 
-LONG AutoFlysTimer(HWND hwnd)
+LONG FighterTimer(HWND hwnd)
 {
 	
 	unsigned int num, i;

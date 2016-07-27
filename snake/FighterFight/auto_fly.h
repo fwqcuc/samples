@@ -3,6 +3,9 @@
 #ifndef _AUTO_FLY_H
 #define _AUTO_FLY_H
 
+#define MAX_X 500
+#define MAX_Y 800
+
 typedef enum _FLY_STATE
 {
 	FLY_OUT,
@@ -32,11 +35,9 @@ typedef struct _AUTO_FLY
 }AUTO_FLY, *LPAUTO_FLY;
 
 
+#define RAND_DIR ((double)(rand()*2-RAND_MAX))/(RAND_MAX*5)
 
-#define MAX_X 500
-#define MAX_Y 1000
-
-#define gen_bullet(x, y)	create_fly(FLY_TYPE_BULLET,	x, y, 0, 5, 0, 0, 0)
+#define gen_bullet(x, y)	create_fly(FLY_TYPE_BULLET,	x, y, RAND_DIR, 20, 0, 0, 0)
 #define gen_enemy()			create_fly(FLY_TYPE_ENEMY, rand()%MAX_X, 0, 0, 8, 0, 0, 0)
 
 int flys_init();
