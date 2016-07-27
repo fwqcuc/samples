@@ -64,13 +64,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="bullet_fighter.c" />
+    <ClCompile Include="auto_fly.c" />
     <ClCompile Include="LinkList.c" />
     <ClCompile Include="ui.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bullet_fight.h" />
+    <ClInclude Include="auto_fly.h" />
     <ClInclude Include="LinkList.h" />
+    <ClInclude Include="ui.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
