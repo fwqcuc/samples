@@ -37,8 +37,8 @@ typedef struct _AUTO_FLY
 
 #define RAND_DIR ((double)(rand()*2-RAND_MAX))/(RAND_MAX*5)
 
-#define gen_bullet(x, y)	create_fly(FLY_TYPE_BULLET,	x, y, RAND_DIR, 20, 0, 0, 0)
-#define gen_enemy()			create_fly(FLY_TYPE_ENEMY, rand()%MAX_X, 0, 0, 8, 0, 0, 0)
+#define gen_bullet(x, y)	create_fly(FLY_TYPE_BULLET,	x, y, RAND_DIR, rand()%10+5, 0, 0, 0)
+#define gen_enemy()			create_fly(FLY_TYPE_ENEMY, rand()%MAX_X, 0, 0, 3, 0, 0, 0)
 
 int flys_init();
 LPAUTO_FLY create_fly(

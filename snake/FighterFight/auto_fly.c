@@ -159,7 +159,7 @@ void destory_fly_by_state()
 {
 	unsigned int num, i;
 	LPAUTO_FLY auto_fly;
-	
+
 again:
 	num = get_flys_num();
 
@@ -169,10 +169,17 @@ again:
 	for (i = 0; i < num; i++)
 	{
 		auto_fly = get_fly_at(i);
-		if (auto_fly->state == FLY_HIT || auto_fly->state == FLY_OUT)
+		if (auto_fly->state == FLY_HIT)
 		{
 			destory_fly_at(i);
 			goto again;
+		}
+		else if (auto_fly->state == FLY_OUT)
+		{
+
+			destory_fly_at(i);
+			goto again;
+
 		}
 	}
 }

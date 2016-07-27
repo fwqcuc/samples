@@ -203,6 +203,8 @@ LONG FightWindowPaint(HWND hwnd)
 	HPEN oldPen, hpenBullet;
 	HBRUSH oldBursh, hbrBullet;
 
+	CHAR str_show[100];
+
 	GetClientRect(hwnd, &rect);
 
 	hdc = GetDC(hwnd);
@@ -231,36 +233,7 @@ LONG FightWindowPaint(HWND hwnd)
 	*******************************************************************************/
 	FillRect(hdcMem, &rect, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
-
-	// 画子弹
-	hbrBullet = CreateSolidBrush(COLOR_BULLET);
-	hpenBullet = CreatePen(PS_NULL, 0, 0);
-	oldBursh = SelectObject(hdcMem, hbrBullet);
-	oldPen = SelectObject(hdcMem, hpenBullet);
-	num = get_flys_num();
-	for (i = 0; i < num; i++)
-	{
-		auto_fly = get_fly_at(i);
-		if (auto_fly->state == FLY_HIT)
-		{
-			// todo 爆炸；
-		}
-		else
-		{
-			Ellipse(hdcMem,
-				get_fly_x(auto_fly) - 4,
-				get_fly_y(auto_fly) - 6,
-				get_fly_x(auto_fly) + 4,
-				get_fly_y(auto_fly) + 6);
-		}
-
-	}
-
-	oldBursh = SelectObject(hdcMem, oldBursh);
-	oldPen = SelectObject(hdcMem, oldPen);
-
-
-	//// 画飞机
+	// 画飞机
 
 	StretchBlt(hdcMem,
 		ptFighter.x - FIGHTER_WIDTH / 2, ptFighter.y,
@@ -268,6 +241,50 @@ LONG FightWindowPaint(HWND hwnd)
 		hdcBitmapSrc,
 		0, 0, bmp.bmWidth, bmp.bmHeight,
 		SRCCOPY);
+
+
+	// 画子弹和敌机
+	hbrBullet = CreateSolidBrush(COLOR_BULLET);
+	hpenBullet = CreatePen(PS_NULL, 0, 0);
+	oldBursh = SelectObject(hdcMem, hbrBullet);
+	oldPen = SelectObject(hdcMem, hpenBullet);
+	num = get_flys_num();
+
+	wsprintf(str_show, "flys count: %d", num);
+	TextOut(hdcMem, 10, 10, str_show, strlen(str_show));
+
+	for (i = 0; i < num; i++)
+	{
+		auto_fly = get_fly_at(i);
+		if (auto_fly->type == FLY_TYPE_BULLET)
+		{
+			Ellipse(hdcMem,
+				get_fly_x(auto_fly) - 4,
+				get_fly_y(auto_fly) - 6,
+				get_fly_x(auto_fly) + 4,
+				get_fly_y(auto_fly) + 6);
+		}
+		else if (auto_fly->type == FLY_TYPE_ENEMY)
+		{
+
+			if (auto_fly->state == FLY_HIT)
+			{
+				// todo 爆炸；
+			}
+			else
+			{
+				Ellipse(hdcMem,
+					get_fly_x(auto_fly) - 20,
+					get_fly_y(auto_fly) - 10,
+					get_fly_x(auto_fly) + 20,
+					get_fly_y(auto_fly) + 10);
+			}
+		}
+
+	}
+
+	oldBursh = SelectObject(hdcMem, oldBursh);
+	oldPen = SelectObject(hdcMem, oldPen);
 
 
 	// 拷贝到DC
@@ -876,5 +893,11 @@ LONG FighterTimer(HWND hwnd)
 	}
 
 	destory_fly_by_state();
+
+	//if (rand() % 1000 < 20) // 1%的概率，随机产生敌机。
+	//{
+	//	gen_enemy();
+	//}
+
 	return 0;
 }
