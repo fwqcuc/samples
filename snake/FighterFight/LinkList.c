@@ -97,10 +97,11 @@ void* ListDeleteAt(PLIST list, int n)
 	int  i;
 	PNODE tmp;
 	PNODE prev;
+	void* data;
 
 	tmp = list->first;
 	prev = tmp;
-	if (n < 1)
+	if (n < 0)
 		return (NULL);
 	if (n == 0)
 	{
@@ -117,7 +118,9 @@ void* ListDeleteAt(PLIST list, int n)
 		++i;
 	}
 	prev->next = tmp->next;
-	return (tmp->data);
+	data = tmp->data;
+	free(tmp);
+	return data;
 }
 
 
