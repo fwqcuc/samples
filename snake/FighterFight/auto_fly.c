@@ -104,11 +104,11 @@ int be_hit(LPAUTO_FLY enemy, LPAUTO_FLY bullet)
 
 	if (enemy->x + enemy->ratio_x > bullet->x &&
 		enemy->x - enemy->ratio_x < bullet->x &&
-		enemy->y + enemy->ratio_y < bullet->y &&
-		enemy->y - enemy->ratio_y > bullet->y)
+		enemy->y + enemy->ratio_y > bullet->y &&
+		enemy->y - enemy->ratio_y < bullet->y)
 	{
-		enemy->state = FLY_HIT;
-		bullet->state = FLY_HIT;
+		fly_be_hit(enemy);
+		fly_be_hit(bullet);
 		return 1;
 	}
 	else
