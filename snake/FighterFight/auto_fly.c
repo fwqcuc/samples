@@ -4,6 +4,8 @@
 
 PLIST list_flys;
 
+DWORD dwSorce = 0;
+
 int flys_init()
 {
 	time_t t;
@@ -108,6 +110,7 @@ int be_hit(LPAUTO_FLY enemy, LPAUTO_FLY bullet)
 		enemy->y - enemy->ratio_y < bullet->y)
 	{
 		fly_be_hit(enemy);
+		dwSorce += 100;
 		fly_be_hit(bullet);
 		return 1;
 	}
@@ -182,4 +185,10 @@ again:
 
 		}
 	}
+}
+
+
+DWORD get_sorce()
+{
+	return dwSorce;
 }

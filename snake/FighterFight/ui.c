@@ -7,11 +7,11 @@
 
 #define CLASS_NAME_BK		"bk_class"
 #define CLASS_NAME_FIGHT	"fight_class"
-#define CLASS_NAME_FLYS		"flys_class"
+#define CLASS_NAME_FLYS		"flys_class"ssssssssssssssssss
 
 #define BITMAP_FILE_BK		"cloud.bmp"
 
-#define TIMER_ID			12340
+#define TIMER_ID			12340                                                           
 #define TRANS_BK_COLOR		RGB(255,255,255)
 #define FIGHTER_HEIGHT		50
 #define FIGHTER_WIDTH		50
@@ -33,7 +33,9 @@ HWND hwndBackground;
 HBITMAP hbmpFighter;
 HBITMAP hbmpBackground;
 
-#define COLOR_BULLET RGB(0,255,0)
+#define COLOR_BULLET	RGB(0,255,0)
+#define COLOR_ENEMY		RGB(255,255,0)
+#define COLOR_BOMB		RGB(255, 0, 0)
 
 POINT ptFighter;
 
@@ -151,7 +153,7 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 	// Create the main window. 
 	HWND hwnd;
 	hwnd = CreateWindowEx(
-		WS_EX_APPWINDOW,
+		WS_EX_APPWINDOW | WS_EX_LAYERED,
 		CLASS_NAME_BK,			// 窗口类名，必须是已经注册了的窗口类
 		"",		// title-bar string 
 		WS_POPUP,	// 窗口的style，这个表示为top-level window 
@@ -171,12 +173,12 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 		return NULL;
 	}
 
-	//if (!SetLayeredWindowAttributes(
-	//	hwnd, TRANS_BK_COLOR,
-	//	0, LWA_COLORKEY | LWA_ALPHA))
-	//{
-	//	DWORD dwError = GetLastError();
-	//}
+	if (!SetLayeredWindowAttributes(
+		hwnd, TRANS_BK_COLOR,
+		220, LWA_ALPHA))
+	{
+		DWORD dwError = GetLastError();
+	}
 
 	// 窗口创建成功，继续运行。
 
@@ -200,11 +202,12 @@ LONG FightWindowPaint(HWND hwnd)
 	BITMAP bmp;
 
 	RECT rect;
+	HFONT hFont;
 
 	HPEN oldPen, hpenBullet;
-	HBRUSH oldBursh, hbrBullet;
+	HBRUSH oldBursh, hbrBullet, hbrEnemy, bhrBomb;
 
-	CHAR str_show[100];
+	CHAR debug_info[100];
 
 	GetClientRect(hwnd, &rect);
 
@@ -246,19 +249,29 @@ LONG FightWindowPaint(HWND hwnd)
 
 	// 画子弹和敌机
 	hbrBullet = CreateSolidBrush(COLOR_BULLET);
+	hbrEnemy = CreateSolidBrush(COLOR_ENEMY);
+	bhrBomb = CreateSolidBrush(COLOR_BOMB);
 	hpenBullet = CreatePen(PS_NULL, 0, 0);
 	oldBursh = SelectObject(hdcMem, hbrBullet);
 	oldPen = SelectObject(hdcMem, hpenBullet);
 	num = get_flys_num();
 
-	wsprintf(str_show, "flys count: %d", num);
-	TextOut(hdcMem, 10, 10, str_show, strlen(str_show));
+	// 创建了一个字体对象
+	hFont = CreateFont(20, 0, 0, 0, FW_DONTCARE, 0, FALSE, 0, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+		CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Consolas"));
+
+
+	wsprintf(debug_info, "DEBUG_INFO: objects count: %d\n 得分：0x%p", num, get_sorce());
+	SelectObject(hdcMem, hFont);
+	SetTextColor(hdcMem, RGB(255, 0, 0));
+	TextOut(hdcMem, 10, 10, debug_info, strlen(debug_info));
 
 	for (i = 0; i < num; i++)
 	{
 		auto_fly = get_fly_at(i);
 		if (auto_fly->type == FLY_TYPE_BULLET)
 		{
+			SelectObject(hdcMem, hbrBullet);
 			Ellipse(hdcMem,
 				get_fly_x(auto_fly) - 4,
 				get_fly_y(auto_fly) - 6,
@@ -270,10 +283,16 @@ LONG FightWindowPaint(HWND hwnd)
 
 			if (auto_fly->state == FLY_HIT)
 			{
-				// todo 爆炸；
+				SelectObject(hdcMem, bhrBomb);
+				Ellipse(hdcMem,
+					get_fly_x(auto_fly) - 25,
+					get_fly_y(auto_fly) - 25,
+					get_fly_x(auto_fly) + 25,
+					get_fly_y(auto_fly) + 25);
 			}
 			else
 			{
+				SelectObject(hdcMem, hbrEnemy);
 				Ellipse(hdcMem,
 					get_fly_x(auto_fly) - 20,
 					get_fly_y(auto_fly) - 10,
@@ -298,6 +317,9 @@ LONG FightWindowPaint(HWND hwnd)
 
 	DeleteObject(hpenBullet);
 	DeleteObject(hbrBullet);
+	DeleteObject(hbrEnemy); 
+	DeleteObject(bhrBomb);
+	DeleteObject(hFont);
 
 	DeleteObject(hBitmap);
 	DeleteDC(hdcBitmapSrc);
@@ -843,37 +865,51 @@ LONG FighterCreate(HWND hwnd)
 LONG OnKeydown(HWND hwnd, UINT vk)
 {
 	RECT rectFighter;
-	//GetAsyncKeyState()
-	switch (vk)
+	UINT key = vk;
+
+	// 处理方向键和发射键同时按，一个简陋偷懒的实现方式。
+	switch (key)
 	{
 	case VK_LEFT:
-		ptFighter.x -= FIGHTER_MOVE_STEP;
-		if (ptFighter.x < 0)
-			ptFighter.x = 0;
-		break;
 	case VK_RIGHT:
-		ptFighter.x += FIGHTER_MOVE_STEP;
-		if (ptFighter.x > MAX_X)
-			ptFighter.x = MAX_X;
-		break;
 	case VK_UP:
-		ptFighter.y -= FIGHTER_MOVE_STEP;
-		if (ptFighter.y < 0)
-			ptFighter.y = 0;
-		break;
 	case VK_DOWN:
-		ptFighter.y += FIGHTER_MOVE_STEP;
-		if (ptFighter.y > MAX_Y)
-			ptFighter.y = MAX_Y;
-		break;
 	case 'S':
-		gen_bullet(ptFighter.x , ptFighter.y);
+		if (HIWORD(GetKeyState('S')))
+		{
+			gen_bullet(ptFighter.x, ptFighter.y);
 		//PlaySound("C:\\Windows\\Media\\ir_end.wav", NULL, SND_FILENAME);
+		}
+		if (HIWORD(GetKeyState(VK_DOWN)))
+		{
+			ptFighter.y += FIGHTER_MOVE_STEP;
+			if (ptFighter.y > MAX_Y)
+				ptFighter.y = MAX_Y;
+		}
+		else if (HIWORD(GetKeyState(VK_UP)))
+		{
+			ptFighter.y -= FIGHTER_MOVE_STEP;
+			if (ptFighter.y < 0)
+				ptFighter.y = 0;
+		}
+		else if (HIWORD(GetKeyState(VK_LEFT)))
+		{
+			ptFighter.x -= FIGHTER_MOVE_STEP;
+			if (ptFighter.x < 0)
+				ptFighter.x = 0;
+		}
+		else if (HIWORD(GetKeyState(VK_RIGHT)))
+		{
+			ptFighter.x += FIGHTER_MOVE_STEP;
+			if (ptFighter.x > MAX_X)
+				ptFighter.x = MAX_X;
+		}
+		FightWindowPaint(hwndFighter);
 		break;
 	default:
+		// 其他键不响应
 		break;
 	}
-	FightWindowPaint(hwndFighter);
 	return 0;
 }
 
@@ -882,23 +918,12 @@ LONG FighterTimer(HWND hwnd)
 	
 	unsigned int num, i;
 	LPAUTO_FLY auto_fly;
-	
-	flys_move_step();
-	
-	num = get_flys_num();
-
-	for (i = 0; i < num; i++)
-	{
-		auto_fly = get_fly_at(i);
-		if (auto_fly->state == FLY_HIT)
-		{
-			// todo 爆炸；
-		}
-	}
 
 	destory_fly_by_state();
+	
+	flys_move_step();
 
-	if (rand() % 1000 < 20) // 1%的概率，随机产生敌机。
+	if (rand() % 1000 < 300) // 2%的概率，随机产生敌机。
 	{
 		gen_enemy();
 	}
