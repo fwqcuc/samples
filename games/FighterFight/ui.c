@@ -7,7 +7,7 @@
 
 #define CLASS_NAME_BK		"bk_class"
 #define CLASS_NAME_FIGHT	"fight_class"
-#define CLASS_NAME_FLYS		"flys_class"ssssssssssssssssss
+#define CLASS_NAME_FLYS		"flys_class"
 
 #define BITMAP_FILE_BK		"cloud.bmp"
 
@@ -34,7 +34,7 @@ HBITMAP hbmpFighter;
 HBITMAP hbmpBackground;
 
 #define COLOR_BULLET	RGB(0,255,0)
-#define COLOR_ENEMY		RGB(255,255,0)
+#define COLOR_ENEMY		RGB(255,0,255)
 #define COLOR_BOMB		RGB(255, 0, 0)
 
 POINT ptFighter;
@@ -923,7 +923,7 @@ LONG FighterTimer(HWND hwnd)
 	
 	flys_move_step();
 
-	if (rand() % 1000 < 300) // 2%的概率，随机产生敌机。
+	if (rand() % 1000 < 100) // 2%的概率，随机产生敌机。
 	{
 		gen_enemy();
 	}
