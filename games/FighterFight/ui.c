@@ -47,7 +47,7 @@ LONG CALLBACK BackGroundWindowProc(
 	WPARAM wParam, // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
 	LPARAM lParam) // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
 {
-
+	RECT rectNew;
 	// 注意，是switch-case, 每次这个函数被调用，只会落入到一个case中。
 	switch (msg)
 	{
@@ -66,16 +66,23 @@ LONG CALLBACK BackGroundWindowProc(
 		break;
 
 	case WM_MOVING:
+
 		BackgroundResizeAndMove(hwnd, (LPRECT)lParam);
 		break;
 
+	case WM_KILLFOCUS:
+		KillTimer(hwndFighter, TIMER_ID);
+		break;
+
+	case WM_SETFOCUS:
+		SetTimer(hwndFighter, TIMER_ID, dwTimerElapse, NULL);
+		break;
+
 	case WM_SIZE:
-	{
-		RECT rectNew;
 		GetWindowRect(hwnd, &rectNew);
 		BackgroundResizeAndMove(hwnd, &rectNew);
 		break;
-	}
+
 	case WM_KEYDOWN:
 		OnKeydown(hwnd, (UINT)wParam);
 		break;

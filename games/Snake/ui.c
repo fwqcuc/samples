@@ -122,7 +122,7 @@ int WINAPI WinMain(
 	// hIcon成员用来指定窗口的图标
 	// 这里直接使用LoadIcon函数加载了一个系统预定义的图标，开发人员可也可以自己创建图标。
 	wc.hIcon = LoadIcon(NULL,
-		IDI_ERROR);
+		IDI_APPLICATION);
 	// Cursor是鼠标光标，这里是设定了鼠标光标的样式。
 	// 直接使用LoadCursor API函数载入了一个系统预定义的光标样式，还有IDC_CROSS,IDC_HAND等样式 
 	wc.hCursor = LoadCursor(NULL,
@@ -151,7 +151,7 @@ int WINAPI WinMain(
 
 	hwnd = CreateWindow(
 		"MainWClass",			// 窗口类名，必须是已经注册了的窗口类
-		"我的蛇好美！！",		// title-bar string 
+		"Snake Game!!",		// title-bar string 
 		WS_OVERLAPPEDWINDOW,	// 窗口的style，这个表示为top-level window 
 		CW_USEDEFAULT,			// 窗口水平位置default horizontal POINT 
 		CW_USEDEFAULT,			// 窗口垂直位置default vertical POINT 
