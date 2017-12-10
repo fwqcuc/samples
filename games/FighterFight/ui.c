@@ -38,8 +38,11 @@ HBITMAP hbmpBackground;
 #define COLOR_BOMB		RGB(255, 0, 0)
 
 POINT ptFighter;
-
 DWORD dwTimerElapse = 40;
+
+/// 函数声明
+
+LONG FighterTimer(HWND hwnd);
 
 LONG CALLBACK BackGroundWindowProc(
 	HWND hwnd, //
@@ -55,6 +58,10 @@ LONG CALLBACK BackGroundWindowProc(
 		// 一般收到这个消息处理过程中，可以用来进行一些初始化的工作
 	case WM_CREATE:
 		BackgroundCreate(hwnd);
+		SetFocus(hwnd);
+		PostMessage(hwnd, WM_LBUTTONDOWN, 0, (DWORD)0x0050050);
+		PostMessage(hwnd, WM_LBUTTONUP, 0, (DWORD)0x0050050);
+
 		break;
 
 		// 当系统认为窗口上的GDI对象应该被重绘时，会向窗口发送一个WM_PAINT消息。
@@ -160,7 +167,7 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 	// Create the main window. 
 	HWND hwnd;
 	hwnd = CreateWindowEx(
-		WS_EX_APPWINDOW | WS_EX_LAYERED,
+		WS_EX_APPWINDOW | WS_EX_LAYERED | WS_EX_TOPMOST,
 		CLASS_NAME_BK,			// 窗口类名，必须是已经注册了的窗口类
 		"",		// title-bar string 
 		WS_POPUP,	// 窗口的style，这个表示为top-level window 
@@ -182,7 +189,7 @@ HWND BackgroundWindowCreate(HINSTANCE hinstance)
 
 	if (!SetLayeredWindowAttributes(
 		hwnd, TRANS_BK_COLOR,
-		220, LWA_ALPHA))
+		150, LWA_ALPHA))
 	{
 		DWORD dwError = GetLastError();
 	}
@@ -268,7 +275,7 @@ LONG FightWindowPaint(HWND hwnd)
 		CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Consolas"));
 
 
-	wsprintf(debug_info, "DEBUG_INFO: objects count: %d\n 得分：0x%p", num, get_sorce());
+	wsprintf(debug_info, "DEBUG_INFO: objects count: %d\n 得分：0x%p", num, get_score());
 	SelectObject(hdcMem, hFont);
 	SetTextColor(hdcMem, RGB(255, 0, 0));
 	TextOut(hdcMem, 10, 10, debug_info, strlen(debug_info));
@@ -342,9 +349,7 @@ LONG CALLBACK FightWindowProc(
 	WPARAM wParam, // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
 	LPARAM lParam) // 消息参数，不同的消息有不同的意义，详见MSDN中每个消息的文档
 {
-	HDC hdc, hdcMem;
-	PAINTSTRUCT ps;
-	RECT rect;
+
 	// 注意，是switch-case, 每次这个函数被调用，只会落入到一个case中。
 	switch (msg)
 	{
@@ -816,8 +821,6 @@ LONG BackgroundPaint(HWND hwnd)
 	//PAINTSTRUCT ps;
 	RECT rect;
 
-	unsigned int num, i;
-	HBITMAP hbmMem;
 	BITMAP bmp;
 
 	hdc = GetDC(hwnd);
@@ -871,7 +874,6 @@ LONG FighterCreate(HWND hwnd)
 
 LONG OnKeydown(HWND hwnd, UINT vk)
 {
-	RECT rectFighter;
 	UINT key = vk;
 
 	// 处理方向键和发射键同时按，一个简陋偷懒的实现方式。
@@ -922,9 +924,6 @@ LONG OnKeydown(HWND hwnd, UINT vk)
 
 LONG FighterTimer(HWND hwnd)
 {
-	
-	unsigned int num, i;
-	LPAUTO_FLY auto_fly;
 
 	destory_fly_by_state();
 	

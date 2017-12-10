@@ -338,7 +338,7 @@ void GamePaint(HWND hwnd)
 	if (hOldFont = (HFONT)SelectObject(hdcmem, hFont))
 	{
 		CHAR szSourceInfo[1024];
-		wsprintf(szSourceInfo, "Sorce %d level %d", GetScore(), GetLevel());
+		wsprintf(szSourceInfo, "score %d level %d", GetScore(), GetLevel());
 		// 设置输出颜色
 		SetTextColor(hdcmem, COLOR_TEXT);
 		// 输出字符串。

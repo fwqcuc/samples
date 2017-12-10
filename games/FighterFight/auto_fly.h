@@ -41,7 +41,7 @@ typedef struct _AUTO_FLY
 #define gen_enemy()			create_fly(FLY_TYPE_ENEMY, rand()%MAX_X, 0, 0, rand()%3+2, 0, 10, 10)
 
 
-DWORD get_sorce();
+DWORD get_score();
 int flys_init();
 LPAUTO_FLY create_fly(
 	FLY_TYPE type,
